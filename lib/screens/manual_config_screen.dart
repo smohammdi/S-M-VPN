@@ -132,7 +132,7 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedProtocol,
+                  value: _selectedProtocol,
                   decoration: InputDecoration(
                     labelText: 'Protocol',
                     labelStyle: const TextStyle(fontWeight: FontWeight.w600),
