@@ -1,8 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart' as m;
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/models/v2ray_config.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/screens/manual_config_screen.dart';
+import 'package:sm_vpn/screens/qr_scanner_screen.dart';
 import 'package:flutter/services.dart';
 
 class ServersScreen extends StatefulWidget {
@@ -140,7 +143,8 @@ class _ServersScreenState extends State<ServersScreen> {
       }
 
       final service = Provider.of<V2RayService>(context, listen: false);
-      final config = await service.parseConfigFromClipboard(clipboardData.text!);
+      final clipboardText = clipboardData.text!;
+      final config = await service.parseConfigFromClipboard(clipboardText);
 
       if (config != null) {
         await _loadConfigs();
@@ -152,6 +156,20 @@ class _ServersScreenState extends State<ServersScreen> {
                 title: const Text('Config Added'),
                 content: Text('${config.remark} added successfully'),
                 severity: InfoBarSeverity.success,
+              );
+            },
+            duration: const Duration(seconds: 2),
+          );
+        }
+      } else {
+        if (mounted) {
+          await displayInfoBar(
+            context,
+            builder: (context, close) {
+              return const InfoBar(
+                title: Text('Invalid Configuration'),
+                content: Text('The clipboard content is not a valid config'),
+                severity: InfoBarSeverity.error,
               );
             },
             duration: const Duration(seconds: 2),
@@ -175,6 +193,26 @@ class _ServersScreenState extends State<ServersScreen> {
     }
   }
 
+  Future<void> _navigateToManualConfig() async {
+    await Navigator.push(
+      context,
+      FluentPageRoute(
+        builder: (context) => const ManualConfigScreen(),
+      ),
+    );
+    await _loadConfigs();
+  }
+
+  Future<void> _navigateToQrScanner() async {
+    await Navigator.push(
+      context,
+      FluentPageRoute(
+        builder: (context) => const QrScannerScreen(),
+      ),
+    );
+    await _loadConfigs();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
@@ -184,8 +222,8 @@ class _ServersScreenState extends State<ServersScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             FilledButton(
-              onPressed: _importFromClipboard,
-              child: const Icon(FluentIcons.paste, size: 16),
+              onPressed: _loadConfigs,
+              child: const Icon(FluentIcons.refresh, size: 16),
             ),
             const SizedBox(width: 8),
             FilledButton(
@@ -196,8 +234,18 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: _loadConfigs,
-              child: const Icon(FluentIcons.refresh, size: 16),
+              onPressed: _importFromClipboard,
+              child: const Icon(FluentIcons.paste, size: 16),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _navigateToManualConfig,
+              child: const m.Icon(m.Icons.edit_note, size: 16),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _navigateToQrScanner,
+              child: const m.Icon(m.Icons.qr_code_scanner, size: 16),
             ),
           ],
         ),
@@ -223,24 +271,7 @@ class _ServersScreenState extends State<ServersScreen> {
             child: _isLoading
                 ? const Center(child: ProgressRing())
                 : _filteredConfigs.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(FluentIcons.server, size: 64, color: AppTheme.textSecondary),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No servers found',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Add servers from Subscriptions',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      )
+                    ? _buildEmptyState()
                     : ListView(
                         padding: const EdgeInsets.fromLTRB(
                             0, 8, 0, AppTheme.bottomNavHeight),
@@ -288,6 +319,82 @@ class _ServersScreenState extends State<ServersScreen> {
                       ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    // Material buttons need a Material ancestor; wrap the Material subtree
+    // while keeping the surrounding FluentUI page untouched.
+    return Center(
+      child: m.Material(
+        color: m.Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              m.Icon(
+                m.Icons.dns_outlined,
+                size: 80,
+                color: AppTheme.primary.withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'No servers found',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Add a config manually, scan a QR code, or paste from clipboard',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppTheme.lightTextSecondary),
+              ),
+              const SizedBox(height: 24),
+              m.ElevatedButton.icon(
+                onPressed: _navigateToManualConfig,
+                icon: const m.Icon(m.Icons.edit_note),
+                label: const Text('Add Manually'),
+                style: m.ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: m.Colors.white,
+                  minimumSize: const Size(200, 48),
+                  shape: m.RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              m.ElevatedButton.icon(
+                onPressed: _navigateToQrScanner,
+                icon: const m.Icon(m.Icons.qr_code_scanner),
+                label: const Text('Scan QR'),
+                style: m.ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: m.Colors.white,
+                  minimumSize: const Size(200, 48),
+                  shape: m.RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              m.OutlinedButton.icon(
+                onPressed: _importFromClipboard,
+                icon: const m.Icon(m.Icons.paste),
+                label: const Text('Paste'),
+                style: m.OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primary,
+                  minimumSize: const Size(200, 48),
+                  shape: m.RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
