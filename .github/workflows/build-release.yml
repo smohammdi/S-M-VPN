@@ -15,7 +15,8 @@ jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,8 +44,8 @@ jobs:
       - name: Rename APK files
         run: |
           mkdir -p output
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk output/ZedSecure-v${{ github.ref_name }}-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk output/ZedSecure-v${{ github.ref_name }}-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk output/S-M-VPN-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk output/S-M-VPN-armeabi-v7a.apk
           ls -lh output/
           
       - name: Get version from tag
@@ -62,10 +63,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Zed-Secure v${{ steps.get_version.outputs.VERSION }}
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: S-M VPN v${{ steps.get_version.outputs.VERSION }}
           body: |
-            ## 🎉 Zed-Secure VPN v${{ steps.get_version.outputs.VERSION }}
+            ## 🎉 S-M VPN v${{ steps.get_version.outputs.VERSION }}
             
             ### 📥 Download APK
             
@@ -102,7 +103,7 @@ jobs:
             
             ### 📖 Quick Start
             
-            1. Open Zed-Secure
+            1. Open S-M VPN
             2. Go to **Subscriptions** tab
             3. Activate the **Suggested Subscription** or add your own
             4. Go to **Servers** tab
