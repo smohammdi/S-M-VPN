@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.zedsecure.vpn"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = 1
         versionName = "1.0.1"
