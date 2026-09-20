@@ -45,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text('Settings', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
       ),
       content: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
         children: [
           _buildSection(
             'General',
@@ -76,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           _buildSection(
             'Network',
             [
@@ -93,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           _buildSection(
             'Appearance',
             [
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           _buildSection(
             'Data',
             [
@@ -129,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           _buildSection(
             'About',
             [
@@ -151,8 +151,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSection(String title, List<Widget> children) {
     return Container(
-      decoration: AppTheme.glassDecoration(borderRadius: 12, opacity: 0.05),
-      padding: const EdgeInsets.all(16),
+      margin: AppTheme.cardMargin,
+      padding: AppTheme.cardPadding,
+      decoration: AppTheme.neoCardDecoration(
+        borderRadius: 24,
+        brightness: FluentTheme.of(context).brightness,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -181,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.2),
+            color: AppTheme.primary.withOpacity(0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
@@ -211,11 +215,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10),
+            color: AppTheme.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Icon(icon, color: Colors.orange, size: 20),
+            child: Icon(icon, color: AppTheme.primary, size: 20),
           ),
         ),
         title: Text(title),
@@ -241,7 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.2),
+            color: AppTheme.primary.withOpacity(0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(

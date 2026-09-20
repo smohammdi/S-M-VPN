@@ -156,18 +156,23 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
                         child: Text('No apps found'),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.fromLTRB(
+                            0, 4, 0, AppTheme.bottomNavHeight),
                         itemCount: _filteredApps.length,
                         itemBuilder: (context, index) {
                           final app = _filteredApps[index];
                           final packageName = app['packageName'] as String;
                           final isSelected = _selectedApps.contains(packageName);
-                          
+
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: AppTheme.glassDecoration(
-                              borderRadius: 8,
-                              opacity: isSelected ? 0.1 : 0.05,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: AppTheme.neoCardDecoration(
+                              borderRadius: 24,
+                              brightness: FluentTheme.of(context).brightness,
+                              color: isSelected
+                                  ? AppTheme.primary.withOpacity(0.08)
+                                  : null,
                             ),
                             child: ListTile(
                               title: Text(app['name'] as String),

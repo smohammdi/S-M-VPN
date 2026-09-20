@@ -227,7 +227,7 @@ class _ServersScreenState extends State<ServersScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(FluentIcons.server, size: 64, color: Colors.grey[80]),
+                            Icon(FluentIcons.server, size: 64, color: AppTheme.textSecondary),
                             const SizedBox(height: 16),
                             const Text(
                               'No servers found',
@@ -242,11 +242,12 @@ class _ServersScreenState extends State<ServersScreen> {
                         ),
                       )
                     : ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.fromLTRB(
+                            0, 8, 0, AppTheme.bottomNavHeight),
                         children: [
                           if (_manualConfigs.isNotEmpty) ...[
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 12, top: 8),
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                               child: Row(
                                 children: [
                                   const Icon(FluentIcons.edit, size: 16),
@@ -266,7 +267,7 @@ class _ServersScreenState extends State<ServersScreen> {
                           ],
                           if (_subscriptionConfigs.isNotEmpty) ...[
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 12, top: 8),
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                               child: Row(
                                 children: [
                                   const Icon(FluentIcons.cloud_download, size: 16),
@@ -298,10 +299,13 @@ class _ServersScreenState extends State<ServersScreen> {
     final isSelected = _selectedConfigId == config.id;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: AppTheme.glassDecoration(
-        borderRadius: 16,
-        opacity: isConnected ? 0.15 : (isSelected ? 0.1 : 0.05),
+      margin: AppTheme.cardMargin,
+      decoration: AppTheme.neoCardDecoration(
+        borderRadius: 24,
+        brightness: FluentTheme.of(context).brightness,
+        color: isConnected
+            ? AppTheme.primary.withOpacity(0.08)
+            : (isSelected ? AppTheme.primary.withOpacity(0.04) : null),
       ),
       child: ListTile(
         leading: Container(

@@ -6,6 +6,7 @@ import 'package:sm_vpn/screens/home_screen.dart';
 import 'package:sm_vpn/screens/servers_screen.dart';
 import 'package:sm_vpn/screens/subscriptions_screen.dart';
 import 'package:sm_vpn/screens/settings_screen.dart';
+import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
       create: (_) => V2RayService(),
       child: FluentApp(
         title: 'S-M VPN',
-        themeMode: ThemeMode.dark,
+        themeMode: ThemeMode.light,
+        theme: AppTheme.lightTheme(),
         darkTheme: AppTheme.darkTheme(),
         home: const MainNavigation(),
         debugShowCheckedModeBanner: false,
@@ -39,30 +41,18 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final List<NavigationPaneItem> _items = [
-    PaneItem(
-      icon: const Icon(FluentIcons.home),
-      title: const Text('Home'),
-      body: const HomeScreen(),
-    ),
-    PaneItem(
-      icon: const Icon(FluentIcons.server),
-      title: const Text('Servers'),
-      body: const ServersScreen(),
-    ),
-    PaneItem(
-      icon: const Icon(FluentIcons.cloud),
-      title: const Text('Subscriptions'),
-      body: const SubscriptionsScreen(),
-    ),
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    ServersScreen(),
+    SubscriptionsScreen(),
+    SettingsScreen(),
   ];
 
-  final List<NavigationPaneItem> _footerItems = [
-    PaneItem(
-      icon: const Icon(FluentIcons.settings),
-      title: const Text('Settings'),
-      body: const SettingsScreen(),
-    ),
+  final List<FloatingNavItem> _navItems = const [
+    FloatingNavItem(icon: FluentIcons.home, label: 'Home'),
+    FloatingNavItem(icon: FluentIcons.server, label: 'Servers'),
+    FloatingNavItem(icon: FluentIcons.cloud, label: 'Subscriptions'),
+    FloatingNavItem(icon: FluentIcons.settings, label: 'Settings'),
   ];
 
   @override
@@ -87,8 +77,8 @@ class _MainNavigationState extends State<MainNavigation> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryGradientStart, AppTheme.primaryGradientEnd],
+                gradient: const LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.primaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -106,16 +96,30 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
       ),
-      pane: NavigationPane(
-        selected: _selectedIndex,
-        onChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        displayMode: PaneDisplayMode.compact,
-        items: _items,
-        footerItems: _footerItems,
+      content: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _screens,
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: FloatingBottomNav(
+                selectedIndex: _selectedIndex,
+                onSelected: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                items: _navItems,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

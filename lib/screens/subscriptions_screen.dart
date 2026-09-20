@@ -72,15 +72,15 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       ),
       content: _isLoading
           ? const Center(child: ProgressRing())
-          : ListView(
-              padding: const EdgeInsets.all(16),
+            : ListView(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
               children: [
                 if (!_isSuggestedActive && _suggestedSubscription != null) ...[
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                     child: Row(
                       children: [
-                        Icon(FluentIcons.cloud, size: 16, color: Colors.orange),
+                        Icon(FluentIcons.cloud, size: 16, color: AppTheme.primary),
                         const SizedBox(width: 8),
                         const Text(
                           'Suggested Subscription',
@@ -97,7 +97,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 ],
                 if (_subscriptions.isNotEmpty) ...[
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                     child: Row(
                       children: [
                         const Icon(FluentIcons.cloud_download, size: 16),
@@ -120,7 +120,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 100),
-                        Icon(FluentIcons.cloud, size: 64, color: Colors.grey[80]),
+                        Icon(FluentIcons.cloud, size: 64, color: AppTheme.textSecondary),
                         const SizedBox(height: 16),
                         const Text(
                           'No custom subscriptions',
@@ -141,36 +141,43 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   Widget _buildSuggestedSubscriptionCard(Subscription subscription) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: AppTheme.cardMargin,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.orange.withOpacity(0.1),
-            Colors.yellow.withOpacity(0.05),
+            AppTheme.primary.withOpacity(0.10),
+            AppTheme.secondary.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.orange.withOpacity(0.3),
+          color: AppTheme.primary.withOpacity(0.3),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ListTile(
         leading: Container(
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orange, Colors.yellow],
+            gradient: const LinearGradient(
+              colors: [AppTheme.primary, AppTheme.primaryLight],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.orange.withOpacity(0.3),
+                color: AppTheme.primary.withOpacity(0.3),
                 blurRadius: 8,
                 spreadRadius: 2,
               ),
@@ -202,15 +209,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   Widget _buildSubscriptionCard(Subscription subscription) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: AppTheme.glassDecoration(borderRadius: 12, opacity: 0.05),
+      margin: AppTheme.cardMargin,
+      decoration: AppTheme.neoCardDecoration(
+        borderRadius: 24,
+        brightness: FluentTheme.of(context).brightness,
+      ),
       child: ListTile(
         leading: Container(
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
+            color: AppTheme.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: Icon(FluentIcons.cloud, color: AppTheme.primary, size: 24),
