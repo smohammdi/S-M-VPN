@@ -1,4 +1,4 @@
-# Zed-Secure VPN
+# S-M VPN
 
 A professional VPN Android application built with Flutter and Kotlin, featuring support for V2Ray/Xray protocols.
 
@@ -34,14 +34,14 @@ _Add screenshots here_
 
 ### Download APK
 
-Download the latest APK from [Releases](https://github.com/CluvexStudio/ZedSecure/releases)
+Download the latest APK from [Releases](https://github.com/smohammdi/S-M-VPN/releases)
 
 ### Build from Source
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/zedsecure.git
-cd zedsecure
+git clone https://github.com/YOUR_USERNAME/S-M-VPN.git
+cd S-M-VPN
 ```
 
 2. Install dependencies:
@@ -92,7 +92,7 @@ Test server latency with ICMP and TCP ping methods. Automatically sort servers b
 ## Project Structure
 
 ```
-zedsecure/
+sm_vpn/
 ├── android/                    # Android native code
 │   └── app/src/main/kotlin/   # Kotlin implementation
 │       ├── PingService.kt     # Native ping implementation
@@ -141,7 +141,7 @@ This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**
 **TL;DR**: You can use, modify, and distribute this code freely, but you MUST:
 1. Keep it open source
 2. Credit the original author (CluvexStudio)
-3. Link to: https://github.com/CluvexStudio/ZedSecure
+3. Link to: https://github.com/smohammdi/S-M-VPN
 4. Share your modifications under GPL-3.0
 
 For commercial use or custom licensing, contact via GitHub Issues.
@@ -164,5 +164,5 @@ If you find this project helpful, please give it a ⭐ on GitHub!
 
 ## Contact
 
-- GitHub: [https://github.com/CluvexStudio/ZedSecure)
-- Issues: [GitHub Issues](https://github.com/CluvexStudio/ZedSecure/issues)
+- GitHub: [https://github.com/smohammdi/S-M-VPN)
+- Issues: [GitHub Issues](https://github.com/smohammdi/S-M-VPN/issues)

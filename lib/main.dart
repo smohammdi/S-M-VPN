@@ -1,11 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:zedsecure/services/v2ray_service.dart';
-import 'package:zedsecure/theme/app_theme.dart';
-import 'package:zedsecure/screens/home_screen.dart';
-import 'package:zedsecure/screens/servers_screen.dart';
-import 'package:zedsecure/screens/subscriptions_screen.dart';
-import 'package:zedsecure/screens/settings_screen.dart';
+import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/screens/home_screen.dart';
+import 'package:sm_vpn/screens/servers_screen.dart';
+import 'package:sm_vpn/screens/subscriptions_screen.dart';
+import 'package:sm_vpn/screens/settings_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => V2RayService(),
       child: FluentApp(
-        title: 'Zed-Secure VPN',
+        title: 'S-M VPN',
         themeMode: ThemeMode.dark,
         darkTheme: AppTheme.darkTheme(),
         home: const MainNavigation(),
@@ -100,7 +100,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             const SizedBox(width: 12),
             const Text(
-              'Zed-Secure',
+              'S-M',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],

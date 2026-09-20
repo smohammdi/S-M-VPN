@@ -1,8 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:zedsecure/services/v2ray_service.dart';
-import 'package:zedsecure/models/subscription.dart';
-import 'package:zedsecure/theme/app_theme.dart';
+import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/models/subscription.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({super.key});
@@ -213,7 +213,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Icon(FluentIcons.cloud, color: Colors.blue, size: 24),
+            child: Icon(FluentIcons.cloud, color: AppTheme.primary, size: 24),
           ),
         ),
         title: Text(

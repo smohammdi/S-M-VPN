@@ -1,8 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:zedsecure/services/v2ray_service.dart';
-import 'package:zedsecure/models/v2ray_config.dart';
-import 'package:zedsecure/theme/app_theme.dart';
+import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/models/v2ray_config.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:flutter/services.dart';
 
 class ServersScreen extends StatefulWidget {
@@ -300,7 +300,7 @@ class _ServersScreenState extends State<ServersScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: AppTheme.glassDecoration(
-        borderRadius: 12, 
+        borderRadius: 16,
         opacity: isConnected ? 0.15 : (isSelected ? 0.1 : 0.05),
       ),
       child: ListTile(
@@ -367,7 +367,7 @@ class _ServersScreenState extends State<ServersScreen> {
               IconButton(
                 icon: Icon(
                   isSelected ? FluentIcons.radio_btn_on : FluentIcons.radio_btn_off,
-                  color: isSelected ? Colors.blue : null,
+                  color: isSelected ? AppTheme.primary : null,
                 ),
                 onPressed: () => _handleSelectConfig(config),
               ),

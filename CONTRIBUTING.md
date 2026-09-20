@@ -1,6 +1,6 @@
-# Contributing to Zed-Secure
+# Contributing to S-M
 
-First off, thank you for considering contributing to Zed-Secure! 🎉
+First off, thank you for considering contributing to S-M! 🎉
 
 ## How Can I Contribute?
 
@@ -41,8 +41,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 5. Build the project
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/zedsecure.git
-cd zedsecure
+git clone https://github.com/YOUR_USERNAME/S-M-VPN.git
+cd S-M-VPN
 flutter pub get
 flutter run
 ```

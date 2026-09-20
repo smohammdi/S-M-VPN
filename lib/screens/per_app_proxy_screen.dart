@@ -1,7 +1,7 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zedsecure/theme/app_theme.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
 
 class PerAppProxyScreen extends StatefulWidget {
   const PerAppProxyScreen({super.key});

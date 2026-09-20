@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zedsecure/models/v2ray_config.dart';
-import 'package:zedsecure/models/subscription.dart';
+import 'package:sm_vpn/models/v2ray_config.dart';
+import 'package:sm_vpn/models/subscription.dart';
 import 'package:flutter/foundation.dart';
 
 class V2RayService extends ChangeNotifier {

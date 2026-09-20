@@ -1,8 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:zedsecure/services/v2ray_service.dart';
-import 'package:zedsecure/theme/app_theme.dart';
-import 'package:zedsecure/models/v2ray_config.dart';
+import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/models/v2ray_config.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return ScaffoldPage(
           header: PageHeader(
             title: const Text(
-              'Zed-Secure VPN',
+              'S-M VPN',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
           ),
@@ -45,14 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.center,
                           children: [
                             Container(
-                              width: 160,
-                              height: 160,
+                              width: 220,
+                              height: 220,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    (isConnected ? AppTheme.connectedGreen : Colors.blue).withOpacity(0.3),
-                                    (isConnected ? AppTheme.connectedGreen : Colors.blue).withOpacity(0.1),
+                                    (isConnected ? AppTheme.connectedGreen : AppTheme.primaryGradientStart).withOpacity(0.3),
+                                    (isConnected ? AppTheme.connectedGreen : AppTheme.primaryGradientStart).withOpacity(0.1),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -62,8 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: _isConnecting ? null : () => _handleConnectionToggle(v2rayService),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
-                                width: 120,
-                                height: 120,
+                                width: 168,
+                                height: 168,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
@@ -75,18 +75,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: (isConnected ? AppTheme.connectedGreen : Colors.blue).withOpacity(0.5),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
+                                      color: (isConnected ? AppTheme.connectedGreen : AppTheme.primaryGradientStart).withOpacity(0.55),
+                                      blurRadius: 28,
+                                      spreadRadius: 6,
                                     ),
                                   ],
                                 ),
                                 child: Center(
                                   child: _isConnecting
-                                      ? const SizedBox(width: 40, height: 40, child: ProgressRing())
+                                      ? const SizedBox(width: 48, height: 48, child: ProgressRing())
                                       : Icon(
                                           isConnected ? FluentIcons.plug_disconnected : FluentIcons.plug_connected,
-                                          size: 50,
+                                          size: 62,
                                           color: Colors.white,
                                         ),
                                 ),
@@ -100,31 +100,31 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: isConnected ? AppTheme.connectedGreen : Colors.grey[100],
+                            color: isConnected ? AppTheme.connectedGreen : AppTheme.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 16),
                         if (activeConfig != null) ...[
                           Text(
                             activeConfig.remark,
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '${activeConfig.address}:${activeConfig.port}',
-                            style: TextStyle(fontSize: 14, color: Colors.grey[100]),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: AppTheme.textSecondary),
                           ),
                           const SizedBox(height: 8),
                             Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.2),
+                              color: AppTheme.primary.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               activeConfig.protocolDisplay,
-                              style: TextStyle(fontSize: 12, color: Colors.blue),
+                              style: TextStyle(fontSize: 12, color: AppTheme.accent, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -146,13 +146,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Upload',
                                 AppTheme.formatSpeed(status.uploadSpeed),
                                 FluentIcons.up,
-                                Colors.green,
+                                AppTheme.primary,
                               ),
                               _buildStatCard(
                                 'Download',
                                 AppTheme.formatSpeed(status.downloadSpeed),
                                 FluentIcons.down,
-                                Colors.blue,
+                                AppTheme.secondary,
                               ),
                             ],
                           ),
@@ -164,20 +164,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Uploaded',
                                 AppTheme.formatBytes(status.upload),
                                 FluentIcons.cloud_upload,
-                                Colors.orange,
+                                AppTheme.accent,
                               ),
                               _buildStatCard(
                                 'Downloaded',
                                 AppTheme.formatBytes(status.download),
                                 FluentIcons.cloud_download,
-                                Colors.purple,
+                                const Color(0xFF86EFAC),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Duration: ${_formatDuration(status.duration)}',
-                            style: TextStyle(fontSize: 16, color: Colors.grey[100]),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
@@ -207,12 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: Colors.grey[100]),
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w400),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: color),
             ),
           ],
         ),

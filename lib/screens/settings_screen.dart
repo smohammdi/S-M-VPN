@@ -1,9 +1,10 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:zedsecure/services/v2ray_service.dart';
-import 'package:zedsecure/theme/app_theme.dart';
+import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zedsecure/screens/per_app_proxy_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:sm_vpn/screens/per_app_proxy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -132,9 +133,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSection(
             'About',
             [
-              _buildInfoTile('App Name', 'Zed-Secure'),
+              _buildInfoTile('App Name', 'S-M'),
               _buildInfoTile('Version', '1.0.0'),
               _buildInfoTile('Build', '1'),
+              _buildNavigationTile(
+                'Privacy Policy',
+                'View our privacy policy',
+                FluentIcons.document,
+                () => _launchUrl('https://smohammdi.github.io/S-M-Privacy-Policy/'),
+              ),
             ],
           ),
         ],
@@ -174,11 +181,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.2),
+            color: AppTheme.primary.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
-            child: Icon(icon, color: Colors.blue, size: 20),
+            child: Icon(icon, color: AppTheme.primary, size: 20),
           ),
         ),
         title: Text(title),
@@ -234,11 +241,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.2),
+            color: AppTheme.primary.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
-            child: Icon(icon, color: Colors.blue, size: 20),
+            child: Icon(icon, color: AppTheme.primary, size: 20),
           ),
         ),
         title: Text(title),
@@ -263,6 +270,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      await displayInfoBar(
+        context,
+        builder: (context, close) {
+          return const InfoBar(
+            title: Text('Unable to open'),
+            content: Text('Could not open the privacy policy link'),
+            severity: InfoBarSeverity.error,
+          );
+        },
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   Future<void> _clearCache() async {
