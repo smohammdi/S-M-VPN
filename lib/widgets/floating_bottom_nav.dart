@@ -17,11 +17,12 @@ class FloatingNavItem {
   });
 }
 
-/// Floating neo-glass bottom navigation bar in ZedSecure style.
+/// Floating neo-glass bottom navigation bar, improved for beginners.
 ///
-/// Glass container floats 16px from left/right/bottom edges, 72px tall
+/// Glass container floats 16px from left/right/bottom edges, 76px tall
 /// with 24px radius. Active item is a #6366F1 pill with white icon and
 /// label below; inactive items are outline grey icons with grey labels.
+/// Layout is direction-aware so it works in both LTR and RTL locales.
 class FloatingBottomNav extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
@@ -40,24 +41,24 @@ class FloatingBottomNav extends StatelessWidget {
     final bool isLight = theme.brightness == Brightness.light;
 
     final Color glassBackground = isLight
-        ? const Color(0xFFFFFFFF).withValues(alpha: 0.72)
-        : const Color(0xFF0B1220).withValues(alpha: 0.72);
+        ? const Color(0xFFFFFFFF).withValues(alpha: 0.80)
+        : const Color(0xFF0B1220).withValues(alpha: 0.80);
     final Color glassBorder = isLight
-        ? const Color(0xFF0F172A).withValues(alpha: 0.06)
-        : const Color(0xFFFFFFFF).withValues(alpha: 0.08);
+        ? const Color(0xFFFFFFFF).withValues(alpha: 0.65)
+        : const Color(0xFFFFFFFF).withValues(alpha: 0.10);
     final Color inactiveColor = isLight
         ? AppTheme.lightTextSecondary
         : AppTheme.textSecondary;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      height: 72,
+      height: 76,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: glassBackground,
               borderRadius: BorderRadius.circular(24),
@@ -94,6 +95,10 @@ class FloatingBottomNav extends StatelessWidget {
 }
 
 /// Single tappable destination with animated pill and scale pop.
+///
+/// Minimum 48px touch target and semantic label keep the bar
+/// beginner-friendly. Text uses Directionality so Persian labels
+/// render correctly when the app switches to RTL.
 class _FloatingNavButton extends StatefulWidget {
   final IconData icon;
   final String label;
@@ -125,7 +130,7 @@ class _FloatingNavButtonState extends State<_FloatingNavButton>
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.06).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.easeInOutCubic),
     );
     if (widget.selected) {
@@ -153,53 +158,75 @@ class _FloatingNavButtonState extends State<_FloatingNavButton>
   Widget build(BuildContext context) {
     final Color foreground =
         widget.selected ? Colors.white : widget.inactiveColor;
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeInOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          decoration: BoxDecoration(
-            color: widget.selected
-                ? AppTheme.primary
-                : const Color(0x00000000),
-            borderRadius: BorderRadius.circular(100),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 280),
-                switchInCurve: Curves.easeInOutCubic,
-                switchOutCurve: Curves.easeInOutCubic,
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: Icon(
-                  widget.icon,
-                  key: ValueKey<IconData>(widget.icon),
-                  size: 26,
-                  color: foreground,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  widget.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+    final TextDirection direction = Directionality.of(context);
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeInOutCubic,
+            constraints: const BoxConstraints(minHeight: 56, minWidth: 56),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: widget.selected
+                  ? AppTheme.primary
+                  : const Color(0x00000000),
+              borderRadius: BorderRadius.circular(100),
+              boxShadow: widget.selected
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 280),
+                  switchInCurve: Curves.easeInOutCubic,
+                  switchOutCurve: Curves.easeInOutCubic,
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(scale: animation, child: child);
+                  },
+                  child: Icon(
+                    widget.icon,
+                    key: ValueKey<IconData>(widget.icon),
+                    size: 26,
                     color: foreground,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 3),
+                Flexible(
+                  child: Directionality(
+                    textDirection: direction,
+                    child: Text(
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: foreground,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -207,7 +234,10 @@ class _FloatingNavButtonState extends State<_FloatingNavButton>
   }
 }
 
-/// Default ZedSecure destinations with material-symbols icons.
+/// Default destinations with material-symbols icons.
+///
+/// Labels stay English for now; the bar itself is RTL-ready so Persian
+/// labels can replace these strings later without layout changes.
 List<FloatingNavItem> defaultFloatingNavItems() {
   return const [
     FloatingNavItem(
