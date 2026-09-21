@@ -204,7 +204,7 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
+                    disabledBackgroundColor: AppTheme.primary.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

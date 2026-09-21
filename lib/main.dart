@@ -48,12 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
     SettingsScreen(),
   ];
 
-  final List<FloatingNavItem> _navItems = const [
-    FloatingNavItem(icon: FluentIcons.home, label: 'Home'),
-    FloatingNavItem(icon: FluentIcons.server, label: 'Servers'),
-    FloatingNavItem(icon: FluentIcons.cloud, label: 'Subscriptions'),
-    FloatingNavItem(icon: FluentIcons.settings, label: 'Settings'),
-  ];
+  final List<FloatingNavItem> _navItems = defaultFloatingNavItems();
 
   @override
   void initState() {

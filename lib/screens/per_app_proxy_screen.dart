@@ -171,7 +171,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
                               borderRadius: 24,
                               brightness: FluentTheme.of(context).brightness,
                               color: isSelected
-                                  ? AppTheme.primary.withOpacity(0.08)
+                                  ? AppTheme.primary.withValues(alpha: 0.08)
                                   : null,
                             ),
                             child: ListTile(

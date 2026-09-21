@@ -373,7 +373,7 @@ class _ServersScreenState extends State<ServersScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primary.withOpacity(0.4),
+                    color: AppTheme.primary.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -416,7 +416,7 @@ class _ServersScreenState extends State<ServersScreen> {
           Positioned.fill(
             child: GestureDetector(
               onTap: () => setState(() => _showAddSheet = false),
-              child: Container(color: Colors.black.withOpacity(0.4)),
+              child: Container(color: Colors.black.withValues(alpha: 0.4)),
             ),
           ),
           Positioned(
@@ -513,14 +513,14 @@ class _ServersScreenState extends State<ServersScreen> {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.12),
+              color: AppTheme.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Icon(
                 m.Icons.dns_outlined,
                 size: 100,
-                color: AppTheme.primary.withOpacity(0.45),
+                color: AppTheme.primary.withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -602,8 +602,8 @@ class _ServersScreenState extends State<ServersScreen> {
         borderRadius: 24,
         brightness: FluentTheme.of(context).brightness,
         color: isConnected
-            ? AppTheme.primary.withOpacity(0.08)
-            : (isSelected ? AppTheme.primary.withOpacity(0.04) : null),
+            ? AppTheme.primary.withValues(alpha: 0.08)
+            : (isSelected ? AppTheme.primary.withValues(alpha: 0.04) : null),
       ),
       child: Row(
         children: [
@@ -611,7 +611,7 @@ class _ServersScreenState extends State<ServersScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.getPingColor(ping).withOpacity(0.2),
+              color: AppTheme.getPingColor(ping).withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -648,7 +648,7 @@ class _ServersScreenState extends State<ServersScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.getPingColor(ping).withOpacity(0.2),
+                color: AppTheme.getPingColor(ping).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -663,7 +663,7 @@ class _ServersScreenState extends State<ServersScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(

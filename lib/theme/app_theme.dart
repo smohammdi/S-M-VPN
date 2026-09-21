@@ -76,15 +76,15 @@ class AppTheme {
       borderRadius: BorderRadius.circular(borderRadius),
       color: color ??
           (isLight
-              ? lightSurface.withOpacity(opacity)
-              : darkSurface.withOpacity(opacity)),
+              ? lightSurface.withValues(alpha: opacity)
+              : darkSurface.withValues(alpha: opacity)),
       border: Border.all(
         color: isLight ? lightBorder : darkBorder,
         width: 1,
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.04),
+          color: Colors.black.withValues(alpha: 0.04),
           blurRadius: blurRadius,
           offset: const Offset(0, 4),
         ),
