@@ -42,6 +42,13 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       if (!mounted) return;
 
       if (config != null) {
+        if (await service.configExists(config)) {
+          _showSnackBar('Server already exists', isError: true);
+          await _controller.start();
+          return;
+        }
+        await service.saveConfig(config);
+        if (!mounted) return;
         _showSnackBar('Configuration added successfully');
         Navigator.of(context).pop(config);
       } else {

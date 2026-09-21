@@ -19,6 +19,7 @@ class _ServersScreenState extends State<ServersScreen> {
   List<V2RayConfig> _configs = [];
   bool _isLoading = true;
   bool _isSorting = false;
+  bool _showAddSheet = false;
   String _searchQuery = '';
   final Map<String, int?> _pingResults = {};
   String? _selectedConfigId;
@@ -33,7 +34,7 @@ class _ServersScreenState extends State<ServersScreen> {
   Future<void> _loadSelectedConfig() async {
     final service = Provider.of<V2RayService>(context, listen: false);
     final selected = await service.loadSelectedConfig();
-    if (selected != null) {
+    if (selected != null && mounted) {
       setState(() {
         _selectedConfigId = selected.id;
       });
@@ -48,10 +49,12 @@ class _ServersScreenState extends State<ServersScreen> {
     final service = Provider.of<V2RayService>(context, listen: false);
     final configs = await service.loadConfigs();
 
-    setState(() {
-      _configs = configs;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _configs = configs;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _pingAllServers() async {
@@ -61,7 +64,7 @@ class _ServersScreenState extends State<ServersScreen> {
     });
 
     final service = Provider.of<V2RayService>(context, listen: false);
-    
+
     for (int i = 0; i < _configs.length; i++) {
       final config = _configs[i];
       try {
@@ -78,7 +81,7 @@ class _ServersScreenState extends State<ServersScreen> {
           });
         }
       }
-      
+
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
@@ -95,11 +98,11 @@ class _ServersScreenState extends State<ServersScreen> {
       _configs.sort((a, b) {
         final pingA = _pingResults[a.id] ?? 999999;
         final pingB = _pingResults[b.id] ?? 999999;
-        
+
         if (pingA == -1 && pingB == -1) return 0;
         if (pingA == -1) return 1;
         if (pingB == -1) return -1;
-        
+
         return pingA.compareTo(pingB);
       });
     });
@@ -123,8 +126,10 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _importFromClipboard() async {
+    final service = Provider.of<V2RayService>(context, listen: false);
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (!mounted) return;
       if (clipboardData == null || clipboardData.text == null || clipboardData.text!.isEmpty) {
         if (mounted) {
           await displayInfoBar(
@@ -142,11 +147,27 @@ class _ServersScreenState extends State<ServersScreen> {
         return;
       }
 
-      final service = Provider.of<V2RayService>(context, listen: false);
       final clipboardText = clipboardData.text!;
       final config = await service.parseConfigFromClipboard(clipboardText);
 
       if (config != null) {
+        if (await service.configExists(config)) {
+          if (mounted) {
+            await displayInfoBar(
+              context,
+              builder: (context, close) {
+                return const InfoBar(
+                  title: Text('Duplicate Server'),
+                  content: Text('This server already exists'),
+                  severity: InfoBarSeverity.warning,
+                );
+              },
+              duration: const Duration(seconds: 2),
+            );
+          }
+          return;
+        }
+        await service.saveConfig(config);
         await _loadConfigs();
         if (mounted) {
           await displayInfoBar(
@@ -194,6 +215,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _navigateToManualConfig() async {
+    setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
       FluentPageRoute(
@@ -204,6 +226,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _navigateToQrScanner() async {
+    setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
       FluentPageRoute(
@@ -213,110 +236,266 @@ class _ServersScreenState extends State<ServersScreen> {
     await _loadConfigs();
   }
 
+  Future<void> _confirmDelete(V2RayConfig config) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => ContentDialog(
+        title: const Text('Delete Server'),
+        content: Text('Delete "${config.remark}"? This cannot be undone.'),
+        actions: [
+          Button(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          FilledButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(AppTheme.disconnectedRed),
+            ),
+            child: const Text('Delete'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _handleDelete(config);
+    }
+  }
+
+  Future<void> _handleDelete(V2RayConfig config) async {
+    final service = Provider.of<V2RayService>(context, listen: false);
+    await service.deleteConfig(config.id);
+    setState(() {
+      _configs.removeWhere((c) => c.id == config.id);
+      _pingResults.remove(config.id);
+      if (_selectedConfigId == config.id) _selectedConfigId = null;
+    });
+    if (mounted) {
+      await displayInfoBar(
+        context,
+        builder: (context, close) {
+          return InfoBar(
+            title: const Text('Server Deleted'),
+            content: Text('${config.remark} has been deleted'),
+            severity: InfoBarSeverity.error,
+          );
+        },
+        duration: const Duration(seconds: 2),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
         title: const Text('Servers', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-        commandBar: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FilledButton(
-              onPressed: _loadConfigs,
-              child: const Icon(FluentIcons.refresh, size: 16),
+        commandBar: DropDownButton(
+          title: const Text('Menu'),
+          leading: const Icon(m.Icons.more_vert, size: 16),
+          items: [
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.refresh, size: 16),
+              text: const Text('Refresh'),
+              onPressed: () {
+                _loadConfigs();
+              },
             ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _isSorting ? null : _pingAllServers,
-              child: _isSorting
-                  ? const SizedBox(width: 20, height: 20, child: ProgressRing())
-                  : const Icon(FluentIcons.sort, size: 16),
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.speed, size: 16),
+              text: Text(_isSorting ? 'Pinging...' : 'Ping All'),
+              onPressed: _isSorting
+                  ? null
+                  : () {
+                      _pingAllServers();
+                    },
             ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _importFromClipboard,
-              child: const Icon(FluentIcons.paste, size: 16),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _navigateToManualConfig,
-              child: const m.Icon(m.Icons.edit_note, size: 16),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _navigateToQrScanner,
-              child: const m.Icon(m.Icons.qr_code_scanner, size: 16),
+            const MenuFlyoutSeparator(),
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.content_paste, size: 16),
+              text: const Text('Paste from Clipboard'),
+              onPressed: () {
+                _importFromClipboard();
+              },
             ),
           ],
         ),
       ),
-      content: Column(
+      content: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextBox(
-              placeholder: 'Search servers...',
-              prefix: const Padding(
-                padding: EdgeInsets.only(left: 12),
-                child: Icon(FluentIcons.search),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextBox(
+                  placeholder: 'Search servers...',
+                  prefix: const Padding(
+                    padding: EdgeInsets.only(left: 12),
+                    child: Icon(m.Icons.search, size: 16),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: ProgressRing())
+                    : _filteredConfigs.isEmpty
+                        ? _buildEmptyState()
+                        : ListView(
+                            padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight + 96),
+                            children: [
+                              if (_manualConfigs.isNotEmpty) ...[
+                                _buildSectionHeader(m.Icons.edit_note, 'Manual Configs (${_manualConfigs.length})'),
+                                ..._manualConfigs.map((config) => _buildServerCard(config)),
+                                const SizedBox(height: 24),
+                              ],
+                              if (_subscriptionConfigs.isNotEmpty) ...[
+                                _buildSectionHeader(m.Icons.cloud_outlined, 'Subscriptions (${_subscriptionConfigs.length})'),
+                                ..._subscriptionConfigs.map((config) => _buildServerCard(config)),
+                              ],
+                            ],
+                          ),
+              ),
+            ],
+          ),
+          Positioned(
+            right: 16,
+            bottom: AppTheme.bottomNavHeight + 16,
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(m.Icons.add, color: Colors.white, size: 28),
+                onPressed: () {
+                  setState(() => _showAddSheet = true);
+                },
+              ),
             ),
           ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: ProgressRing())
-                : _filteredConfigs.isEmpty
-                    ? _buildEmptyState()
-                    : ListView(
-                        padding: const EdgeInsets.fromLTRB(
-                            0, 8, 0, AppTheme.bottomNavHeight),
-                        children: [
-                          if (_manualConfigs.isNotEmpty) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                              child: Row(
-                                children: [
-                                  const Icon(FluentIcons.edit, size: 16),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Manual Configs (${_manualConfigs.length})',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ..._manualConfigs.map((config) => _buildServerCard(config)),
-                            const SizedBox(height: 24),
-                          ],
-                          if (_subscriptionConfigs.isNotEmpty) ...[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                              child: Row(
-                                children: [
-                                  const Icon(FluentIcons.cloud_download, size: 16),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Subscription Configs (${_subscriptionConfigs.length})',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ..._subscriptionConfigs.map((config) => _buildServerCard(config)),
-                          ],
+          if (_showAddSheet) _buildAddSheet(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(IconData icon, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddSheet() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => setState(() => _showAddSheet = false),
+              child: Container(color: Colors.black.withOpacity(0.4)),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Add Server', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: _navigateToManualConfig,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(m.Icons.edit_note, size: 20),
+                          SizedBox(width: 8),
+                          Text('Add Manually'),
                         ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: _navigateToQrScanner,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(m.Icons.qr_code_scanner, size: 20),
+                          SizedBox(width: 8),
+                          Text('Scan QR'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: Button(
+                      onPressed: () {
+                        setState(() => _showAddSheet = false);
+                        _importFromClipboard();
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(m.Icons.content_paste, size: 20),
+                          SizedBox(width: 8),
+                          Text('Paste'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -324,77 +503,87 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Widget _buildEmptyState() {
-    // Material buttons need a Material ancestor; wrap the Material subtree
-    // while keeping the surrounding FluentUI page untouched.
-    return Center(
-      child: m.Material(
-        color: m.Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              m.Icon(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
                 m.Icons.dns_outlined,
-                size: 80,
-                color: AppTheme.primary.withOpacity(0.5),
+                size: 100,
+                color: AppTheme.primary.withOpacity(0.45),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'No servers found',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Add a config manually, scan a QR code, or paste from clipboard',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppTheme.lightTextSecondary),
-              ),
-              const SizedBox(height: 24),
-              m.ElevatedButton.icon(
-                onPressed: _navigateToManualConfig,
-                icon: const m.Icon(m.Icons.edit_note),
-                label: const Text('Add Manually'),
-                style: m.ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: m.Colors.white,
-                  minimumSize: const Size(200, 48),
-                  shape: m.RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              m.ElevatedButton.icon(
-                onPressed: _navigateToQrScanner,
-                icon: const m.Icon(m.Icons.qr_code_scanner),
-                label: const Text('Scan QR'),
-                style: m.ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: m.Colors.white,
-                  minimumSize: const Size(200, 48),
-                  shape: m.RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              m.OutlinedButton.icon(
-                onPressed: _importFromClipboard,
-                icon: const m.Icon(m.Icons.paste),
-                label: const Text('Paste'),
-                style: m.OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.primary,
-                  minimumSize: const Size(200, 48),
-                  shape: m.RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 24),
+          const Text(
+            'No servers yet',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Add your first server manually, scan a QR code, or paste a config from clipboard',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: AppTheme.lightTextSecondary),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: FilledButton(
+              onPressed: _navigateToManualConfig,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(m.Icons.edit_note, size: 20),
+                  SizedBox(width: 8),
+                  Text('Add Manually'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: FilledButton(
+              onPressed: _navigateToQrScanner,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(m.Icons.qr_code_scanner, size: 20),
+                  SizedBox(width: 8),
+                  Text('Scan QR'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: Button(
+              onPressed: _importFromClipboard,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(m.Icons.content_paste, size: 20),
+                  SizedBox(width: 8),
+                  Text('Paste'),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -406,7 +595,9 @@ class _ServersScreenState extends State<ServersScreen> {
     final isSelected = _selectedConfigId == config.id;
 
     return Container(
-      margin: AppTheme.cardMargin,
+      height: 80,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: AppTheme.neoCardDecoration(
         borderRadius: 24,
         brightness: FluentTheme.of(context).brightness,
@@ -414,83 +605,101 @@ class _ServersScreenState extends State<ServersScreen> {
             ? AppTheme.primary.withOpacity(0.08)
             : (isSelected ? AppTheme.primary.withOpacity(0.04) : null),
       ),
-      child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppTheme.getPingColor(ping).withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Icon(
-              _getProtocolIcon(config.configType),
-              color: AppTheme.getPingColor(ping),
-              size: 24,
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.getPingColor(ping).withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                _getProtocolIcon(config.configType),
+                color: AppTheme.getPingColor(ping),
+                size: 24,
+              ),
             ),
           ),
-        ),
-        title: Text(
-          config.remark,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text('${config.address}:${config.port} • ${config.protocolDisplay}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (ping != null && ping >= 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.getPingColor(ping).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  config.remark,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                 ),
-                child: Text(
-                  '${ping}ms',
-                  style: TextStyle(
-                    color: AppTheme.getPingColor(ping),
-                    fontWeight: FontWeight.bold,
-                  ),
+                const SizedBox(height: 2),
+                Text(
+                  '${config.address}:${config.port} \u2022 ${config.protocolDisplay}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          if (ping != null && ping >= 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.getPingColor(ping).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '${ping}ms',
+                style: TextStyle(
+                  color: AppTheme.getPingColor(ping),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            if (ping != null && ping == -1)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  '-1 ms',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
+            ),
+          if (ping != null && ping == -1)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Text(
+                '-1 ms',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            if (ping == null)
-              IconButton(
-                icon: const Icon(FluentIcons.speed_high),
-                onPressed: () => _pingSingleServer(config),
-              ),
-            const SizedBox(width: 8),
-            if (!isConnected)
-              IconButton(
-                icon: Icon(
-                  isSelected ? FluentIcons.radio_btn_on : FluentIcons.radio_btn_off,
-                  color: isSelected ? AppTheme.primary : null,
-                ),
-                onPressed: () => _handleSelectConfig(config),
-              ),
-            const SizedBox(width: 8),
+            ),
+          if (ping == null)
+            IconButton(
+              icon: const Icon(m.Icons.speed, size: 24),
+              onPressed: () => _pingSingleServer(config),
+            ),
+          if (!isConnected)
             IconButton(
               icon: Icon(
-                isConnected ? FluentIcons.plug_disconnected : FluentIcons.plug_connected,
+                isSelected ? m.Icons.radio_button_checked : m.Icons.radio_button_unchecked,
+                color: isSelected ? AppTheme.primary : null,
+                size: 24,
               ),
-              onPressed: () => _handleConnect(config),
+              onPressed: () => _handleSelectConfig(config),
             ),
-          ],
-        ),
+          IconButton(
+            icon: Icon(
+              isConnected ? m.Icons.stop : m.Icons.play_arrow,
+              size: 24,
+            ),
+            onPressed: () => _handleConnect(config),
+          ),
+          IconButton(
+            onPressed: () => _confirmDelete(config),
+            icon: Icon(m.Icons.delete_outline, color: Colors.red, size: 24),
+          ),
+        ],
       ),
     );
   }
@@ -521,24 +730,26 @@ class _ServersScreenState extends State<ServersScreen> {
   IconData _getProtocolIcon(String type) {
     switch (type.toLowerCase()) {
       case 'vmess':
-        return FluentIcons.shield;
+        return m.Icons.shield_outlined;
       case 'vless':
-        return FluentIcons.shield_solid;
+        return m.Icons.verified_user_outlined;
       case 'trojan':
-        return FluentIcons.security_group;
+        return m.Icons.security_outlined;
       case 'shadowsocks':
-        return FluentIcons.lock_solid;
+        return m.Icons.lock_outline;
       default:
-        return FluentIcons.server;
+        return m.Icons.dns_outlined;
     }
   }
 
   Future<void> _pingSingleServer(V2RayConfig config) async {
     final service = Provider.of<V2RayService>(context, listen: false);
     final ping = await service.getServerDelay(config);
-    setState(() {
-      _pingResults[config.id] = ping;
-    });
+    if (mounted) {
+      setState(() {
+        _pingResults[config.id] = ping;
+      });
+    }
   }
 
   Future<void> _handleConnect(V2RayConfig config) async {
@@ -582,4 +793,3 @@ class _ServersScreenState extends State<ServersScreen> {
     }
   }
 }
-

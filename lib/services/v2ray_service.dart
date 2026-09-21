@@ -235,15 +235,49 @@ class V2RayService extends ChangeNotifier {
     try {
       final configs = _parseContent(clipboardText, source: 'manual');
       if (configs.isNotEmpty) {
-        final allConfigs = await loadConfigs();
-        allConfigs.add(configs.first);
-        await saveConfigs(allConfigs);
         return configs.first;
       }
       return null;
     } catch (e) {
       debugPrint('Error parsing clipboard config: $e');
       throw Exception('Invalid config format');
+    }
+  }
+
+  Future<bool> configExists(V2RayConfig config) async {
+    final allConfigs = await loadConfigs();
+    final normalized = config.fullConfig.trim();
+    return allConfigs.any((c) => c.fullConfig.trim() == normalized);
+  }
+
+  Future<bool> saveConfig(V2RayConfig config) async {
+    if (await configExists(config)) {
+      return false;
+    }
+    final allConfigs = await loadConfigs();
+    allConfigs.add(config);
+    await saveConfigs(allConfigs);
+    return true;
+  }
+
+  Future<void> deleteConfig(String id) async {
+    final allConfigs = await loadConfigs();
+    allConfigs.removeWhere((c) => c.id == id);
+    await saveConfigs(allConfigs);
+    final prefs = await SharedPreferences.getInstance();
+    final selectedJson = prefs.getString('selected_config');
+    if (selectedJson != null) {
+      try {
+        final selected = V2RayConfig.fromJson(jsonDecode(selectedJson));
+        if (selected.id == id) {
+          await prefs.remove('selected_config');
+        }
+      } catch (_) {}
+    }
+    if (_activeConfig?.id == id) {
+      _activeConfig = null;
+      await _clearActiveConfig();
+      notifyListeners();
     }
   }
 
