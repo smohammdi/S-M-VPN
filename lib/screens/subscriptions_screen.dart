@@ -1,4 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart' as m;
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/models/subscription.dart';
@@ -16,6 +18,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Subscription? _suggestedSubscription;
   bool _isLoading = true;
   bool _isSuggestedActive = false;
+
+  static const Color _success = Color(0xFF10B981);
+  static const Color _danger = Color(0xFFEF4444);
 
   @override
   void initState() {
@@ -53,197 +58,482 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     });
   }
 
+  Color _secondaryText(BuildContext context) {
+    return FluentTheme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
         title: const Text('Subscriptions', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         commandBar: FilledButton(
-          onPressed: _showAddSubscriptionDialog,
+          onPressed: () {
+            HapticFeedback.lightImpact().ignore();
+            _showAddSubscriptionDialog();
+          },
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all(
+              const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            ),
+            shape: WidgetStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(FluentIcons.add, size: 16),
+              Icon(m.Symbols.add_rounded, size: 18),
               SizedBox(width: 8),
-              Text('Add Subscription'),
+              Text(
+                'Add Subscription',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ),
       ),
       content: _isLoading
           ? const Center(child: ProgressRing())
-            : ListView(
-              padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
-              children: [
-                if (!_isSuggestedActive && _suggestedSubscription != null) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    child: Row(
-                      children: [
-                        Icon(FluentIcons.cloud, size: 16, color: AppTheme.primary),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Suggested Subscription',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+          : Directionality(
+              textDirection: Directionality.of(context),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
+                children: [
+                  if (!_isSuggestedActive && _suggestedSubscription != null) ...[
+                    _buildListSectionHeader(
+                      context,
+                      icon: m.Symbols.new_releases_rounded,
+                      title: 'Suggested Subscription',
                     ),
-                  ),
-                  _buildSuggestedSubscriptionCard(_suggestedSubscription!),
-                  const SizedBox(height: 24),
+                    _buildSuggestedSubscriptionCard(_suggestedSubscription!),
+                    const SizedBox(height: 20),
+                  ],
+                  if (_subscriptions.isNotEmpty) ...[
+                    _buildListSectionHeader(
+                      context,
+                      icon: m.Symbols.subscriptions_rounded,
+                      title: 'My Subscriptions (${_subscriptions.length})',
+                    ),
+                    ..._subscriptions.asMap().entries.map(
+                          (entry) => _buildSubscriptionCard(entry.value, entry.key),
+                        ),
+                  ],
+                  if (_subscriptions.isEmpty && _isSuggestedActive)
+                    _buildEmptyState(context),
                 ],
-                if (_subscriptions.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    child: Row(
-                      children: [
-                        const Icon(FluentIcons.cloud_download, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'My Subscriptions (${_subscriptions.length})',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ..._subscriptions.map((sub) => _buildSubscriptionCard(sub)),
-                ],
-                if (_subscriptions.isEmpty && _isSuggestedActive)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 100),
-                        Icon(FluentIcons.cloud, size: 64, color: AppTheme.textSecondary),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No custom subscriptions',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Add a subscription to get started',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+              ),
             ),
+    );
+  }
+
+  Widget _buildListSectionHeader(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Icon(icon, color: AppTheme.primary, size: 18),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildSuggestedSubscriptionCard(Subscription subscription) {
-    return Container(
-      margin: AppTheme.cardMargin,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primary.withValues(alpha: 0.10),
-            AppTheme.secondary.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.primary.withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+    return _EntranceAnimation(
+      index: 0,
+      child: Container(
+        margin: AppTheme.cardMargin,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primary.withValues(alpha: 0.10),
+              AppTheme.secondary.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppTheme.primary, AppTheme.primaryLight],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppTheme.primary.withValues(alpha: 0.3),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primary.withValues(alpha: 0.3),
-                blurRadius: 8,
-                spreadRadius: 2,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.primaryLight],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(FluentIcons.cloud_download, color: Colors.white, size: 24),
-          ),
-        ),
-        title: Text(
-          subscription.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text('Free CloudflarePlus servers'),
-        trailing: FilledButton(
-          onPressed: () => _activateSuggestedSubscription(subscription),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(FluentIcons.add, size: 14),
-              SizedBox(width: 6),
-              Text('Activate'),
-            ],
-          ),
+              child: const Center(
+                child: Icon(m.Symbols.cloud_download_rounded, color: Colors.white, size: 26),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subscription.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Free CloudflarePlus servers',
+                    style: TextStyle(fontSize: 13, color: _secondaryText(context)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton(
+              onPressed: () {
+                HapticFeedback.lightImpact().ignore();
+                _activateSuggestedSubscription(subscription);
+              },
+              style: ButtonStyle(
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(m.Symbols.add_rounded, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Activate',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSubscriptionCard(Subscription subscription) {
-    return Container(
-      margin: AppTheme.cardMargin,
-      decoration: AppTheme.neoCardDecoration(
-        borderRadius: 24,
-        brightness: FluentTheme.of(context).brightness,
+  Widget _buildSubscriptionCard(Subscription subscription, int index) {
+    // Display-only status derived from data: a subscription holding no
+    // servers is shown as inactive. No logic is changed.
+    final bool isActive = subscription.configCount > 0;
+    final Color statusColor = isActive ? _success : _secondaryText(context);
+
+    return _EntranceAnimation(
+      index: index,
+      child: Container(
+        margin: AppTheme.cardMargin,
+        padding: const EdgeInsets.all(18),
+        decoration: AppTheme.neoCardDecoration(
+          borderRadius: 24,
+          brightness: FluentTheme.of(context).brightness,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primary, AppTheme.primaryLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(m.Symbols.cloud_rounded, color: Colors.white, size: 26),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subscription.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Updated ${_formatDate(subscription.lastUpdate)}',
+                        style: TextStyle(fontSize: 13, color: _secondaryText(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.30),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isActive ? 'Active' : 'Inactive',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(m.Symbols.dns_rounded, color: AppTheme.primary, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${subscription.configCount} servers',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact().ignore();
+                        _updateSubscription(subscription);
+                      },
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.all(AppTheme.primary),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(m.Symbols.refresh_rounded, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Update',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact().ignore();
+                        _deleteSubscription(subscription);
+                      },
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.all(_danger),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(m.Symbols.delete_rounded, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'Delete',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Center(
-            child: Icon(FluentIcons.cloud, color: AppTheme.primary, size: 24),
-          ),
-        ),
-        title: Text(
-          subscription.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          '${subscription.configCount} servers • Updated ${_formatDate(subscription.lastUpdate)}',
-        ),
-        trailing: Row(
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(FluentIcons.refresh),
-              onPressed: () => _updateSubscription(subscription),
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primary.withValues(alpha: 0.14),
+                    AppTheme.secondary.withValues(alpha: 0.08),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(36),
+              ),
+              child: const Center(
+                child: Icon(
+                  m.Symbols.cloud_off_rounded,
+                  size: 64,
+                  color: AppTheme.primary,
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(FluentIcons.delete),
-              onPressed: () => _deleteSubscription(subscription),
+            const SizedBox(height: 24),
+            const Text(
+              'No subscriptions yet',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Add a subscription link to get started with automatic server lists.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, color: _secondaryText(context)),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact().ignore();
+                  _showAddSubscriptionDialog();
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(AppTheme.primary),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(m.Symbols.add_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Add Subscription',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -278,15 +568,21 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Name'),
-            const SizedBox(height: 8),
+            const Text(
+              'Name',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
             TextBox(
               controller: nameController,
               placeholder: 'My Subscription',
             ),
-            const SizedBox(height: 16),
-            const Text('URL'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+            const Text(
+              'URL',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
             TextBox(
               controller: urlController,
               placeholder: 'https://...',
@@ -518,3 +814,32 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   }
 }
 
+/// Soft fade + slide entrance for subscription cards.
+class _EntranceAnimation extends StatelessWidget {
+  const _EntranceAnimation({
+    required this.index,
+    required this.child,
+  });
+
+  final int index;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 250 + index * 60),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 14 * (1.0 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
