@@ -148,7 +148,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             status: status,
                             connected: connected,
                           ),
-
+                          const SizedBox(height: 24),
+                          _buildConnectionButton(
+                            context,
+                            connected: connected,
+                          ),
                         ],
                       ),
                     ),
@@ -641,6 +645,96 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildConnectionButton(
+    BuildContext context, {
+    required bool connected,
+  }) {
+    final String label;
+    final IconData icon;
+    final Color background;
+    if (_isBusy) {
+      label = S.of(context, 'home_wait');
+      icon = m.Symbols.progress_activity_rounded;
+      background = const Color(0xFF94A3B8);
+    } else if (connected) {
+      label = S.of(context, 'home_disconnect');
+      icon = m.Symbols.power_settings_new_rounded;
+      background = const Color(0xFFEF4444);
+    } else {
+      label = S.of(context, 'home_connect');
+      icon = m.Symbols.bolt_rounded;
+      background = const Color(0xFF6366F1);
+    }
+
+    return Semantics(
+      button: true,
+      label: label,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+        height: 56,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: background.withValues(alpha: 0.35),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          height: 56,
+          child: FilledButton(
+            onPressed: _isBusy ? null : _handleConnectionToggle,
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              ),
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return const Color(0xFF94A3B8);
+                }
+                return background;
+              }),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+            ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeOutCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(scale: animation, child: child),
+                );
+              },
+              child: Row(
+                key: ValueKey<String>(label),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
