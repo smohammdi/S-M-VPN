@@ -172,7 +172,7 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
       content: Stack(
         children: [
-          IndexedStack(
+          _TabTransitionStack(
             index: _selectedIndex,
             children: _screens,
           ),
@@ -195,6 +195,88 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Animated replacement for [IndexedStack] used by the bottom navigation:
+/// all tabs stay mounted (state is preserved exactly like IndexedStack),
+/// while the newly selected tab fades + slides in over 300ms.
+/// The slide direction follows the tab order and mirrors automatically
+/// in RTL locales.
+class _TabTransitionStack extends StatefulWidget {
+  const _TabTransitionStack({
+    required this.index,
+    required this.children,
+  });
+
+  final int index;
+  final List<Widget> children;
+
+  @override
+  State<_TabTransitionStack> createState() => _TabTransitionStackState();
+}
+
+class _TabTransitionStackState extends State<_TabTransitionStack>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  final Tween<Offset> _slideTween =
+      Tween<Offset>(begin: Offset.zero, end: Offset.zero);
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    )..value = 1.0;
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _fade = curved;
+    _slide = _slideTween.animate(curved);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TabTransitionStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.index != oldWidget.index) {
+      final bool forward = widget.index > oldWidget.index;
+      final bool rtl =
+          Directionality.of(context) == TextDirection.rtl;
+      final double dx = (forward ? 0.06 : -0.06) * (rtl ? -1.0 : 1.0);
+      _slideTween.begin = Offset(dx, 0);
+      _controller.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        for (int i = 0; i < widget.children.length; i++)
+          Offstage(
+            offstage: i != widget.index,
+            child: i == widget.index
+                ? FadeTransition(
+                    opacity: _fade,
+                    child: SlideTransition(
+                      position: _slide,
+                      child: widget.children[i],
+                    ),
+                  )
+                : widget.children[i],
+          ),
+      ],
     );
   }
 }

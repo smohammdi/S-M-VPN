@@ -263,4 +263,35 @@ List<FloatingNavItem> defaultFloatingNavItems() {
   ];
 }
 
+/// Fluent-style page route with an explicit fade + horizontal slide
+/// (300ms in, 250ms out, easeInOutCubic). The slide direction mirrors
+/// automatically in RTL locales. Used for sub-pages such as Per-App
+/// Proxy, Manual Config and QR Scanner.
+PageRouteBuilder<T> fadeSlideRoute<T>(Widget page) {
+  return PageRouteBuilder<T>(
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInOutCubic,
+        reverseCurve: Curves.easeInOutCubic,
+      );
+      final bool rtl =
+          Directionality.of(context) == TextDirection.rtl;
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: Offset(rtl ? -0.08 : 0.08, 0),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 

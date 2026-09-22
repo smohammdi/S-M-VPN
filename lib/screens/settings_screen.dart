@@ -8,6 +8,7 @@ import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sm_vpn/screens/per_app_proxy_screen.dart';
+import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -106,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     HapticFeedback.lightImpact().ignore();
                     Navigator.push(
                       context,
-                      FluentPageRoute(builder: (context) => const PerAppProxyScreen()),
+                      fadeSlideRoute(const PerAppProxyScreen()),
                     );
                   },
                 ),

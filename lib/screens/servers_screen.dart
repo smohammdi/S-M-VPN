@@ -7,6 +7,7 @@ import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:sm_vpn/screens/manual_config_screen.dart';
 import 'package:sm_vpn/screens/qr_scanner_screen.dart';
 import 'package:sm_vpn/l10n/app_strings.dart';
+import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
 import 'package:flutter/services.dart';
 
 class ServersScreen extends StatefulWidget {
@@ -222,9 +223,7 @@ class _ServersScreenState extends State<ServersScreen> {
     setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
-      FluentPageRoute(
-        builder: (context) => const ManualConfigScreen(),
-      ),
+      fadeSlideRoute(const ManualConfigScreen()),
     );
     await _loadConfigs();
   }
@@ -234,9 +233,7 @@ class _ServersScreenState extends State<ServersScreen> {
     setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
-      FluentPageRoute(
-        builder: (context) => const QrScannerScreen(),
-      ),
+      fadeSlideRoute(const QrScannerScreen()),
     );
     await _loadConfigs();
   }
