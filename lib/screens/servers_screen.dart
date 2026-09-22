@@ -302,40 +302,7 @@ class _ServersScreenState extends State<ServersScreen> {
               : S.of(context, 'subs_title'),
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
-        commandBar: _selectedTab == 0
-            ? DropDownButton(
-          title: Text(S.of(context, 'menu_title')),
-          leading: const Icon(m.Icons.more_vert, size: 16),
-          items: [
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.refresh, size: 16),
-              text: Text(S.of(context, 'menu_refresh')),
-              onPressed: () {
-                HapticFeedback.lightImpact().ignore();
-                _loadConfigs();
-              },
-            ),
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.speed, size: 16),
-              text: Text(_isSorting ? S.of(context, 'menu_pinging') : S.of(context, 'menu_ping_all')),
-              onPressed: _isSorting
-                  ? null
-                  : () {
-                      HapticFeedback.lightImpact().ignore();
-                      _pingAllServers();
-                    },
-            ),
-            const MenuFlyoutSeparator(),
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.content_paste, size: 16),
-              text: Text(S.of(context, 'menu_paste')),
-              onPressed: () {
-                _importFromClipboard();
-              },
-            ),
-          ],
-                ),
-            : null,
+        commandBar: _serversMenu(),
       ),
       content: Stack(
         children: [
@@ -419,6 +386,42 @@ class _ServersScreenState extends State<ServersScreen> {
         ],
       ),
     );
+  }
+
+  Widget? _serversMenu() {
+    if (_selectedTab != 0) return null;
+    return DropDownButton(
+          title: Text(S.of(context, 'menu_title')),
+          leading: const Icon(m.Icons.more_vert, size: 16),
+          items: [
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.refresh, size: 16),
+              text: Text(S.of(context, 'menu_refresh')),
+              onPressed: () {
+                HapticFeedback.lightImpact().ignore();
+                _loadConfigs();
+              },
+            ),
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.speed, size: 16),
+              text: Text(_isSorting ? S.of(context, 'menu_pinging') : S.of(context, 'menu_ping_all')),
+              onPressed: _isSorting
+                  ? null
+                  : () {
+                      HapticFeedback.lightImpact().ignore();
+                      _pingAllServers();
+                    },
+            ),
+            const MenuFlyoutSeparator(),
+            MenuFlyoutItem(
+              leading: const Icon(m.Icons.content_paste, size: 16),
+              text: Text(S.of(context, 'menu_paste')),
+              onPressed: () {
+                _importFromClipboard();
+              },
+            ),
+          ],
+        );
   }
 
   void _selectTab(int index) {
