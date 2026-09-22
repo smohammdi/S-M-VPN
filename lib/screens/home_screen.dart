@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import 'package:sm_vpn/models/v2ray_config.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,15 +45,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (configs.isEmpty) {
           await _showMessage(
-            title: 'No Servers',
-            message: 'No VPN server is configured yet.',
+            title: S.of(context, 'home_no_servers_title'),
+            message: S.of(context, 'home_no_servers_msg'),
           );
           return;
         }
 
         await _showMessage(
-          title: 'No Server Selected',
-          message: 'Please select a server before connecting.',
+          title: S.of(context, 'home_no_selected_title'),
+          message: S.of(context, 'home_no_selected_msg'),
         );
         return;
       }
@@ -61,8 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!success && mounted) {
         await _showMessage(
-          title: 'Connection Failed',
-          message: 'Unable to establish the VPN connection.',
+          title: S.of(context, 'home_conn_failed_title'),
+          message: S.of(context, 'home_conn_failed_msg'),
         );
       }
     } finally {
@@ -91,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: Text(S.of(context, 'home_ok')),
             ),
           ],
         );
@@ -171,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? const Color(0xFF10B981)
             : const Color(0xFFF59E0B);
     final String statusLabel =
-        _isBusy ? 'Connecting' : connected ? 'Connected' : 'Not connected';
+        _isBusy ? S.of(context, 'home_connecting') : connected ? S.of(context, 'home_connected') : S.of(context, 'home_not_connected');
 
     return Row(
       children: [
@@ -215,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Fast and secure connection',
+                S.of(context, 'home_tagline'),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -272,22 +273,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final String stateText;
     if (_isBusy) {
-      stateText = 'Connecting...';
+      stateText = S.of(context, 'home_connecting_long');
     } else if (connected) {
-      stateText = 'Connected';
+      stateText = S.of(context, 'home_connected');
     } else if (status?.state.toUpperCase() == 'CONNECTING') {
-      stateText = 'Connecting...';
+      stateText = S.of(context, 'home_connecting_long');
     } else {
-      stateText = 'Not connected';
+      stateText = S.of(context, 'home_not_connected');
     }
 
     final String helperText;
     if (_isBusy) {
-      helperText = 'Please wait while we secure your connection.';
+      helperText = S.of(context, 'home_secure_wait');
     } else if (connected) {
-      helperText = 'Your connection is encrypted and private.';
+      helperText = S.of(context, 'home_secure_ok');
     } else {
-      helperText = 'Tap the button below to connect securely.';
+      helperText = S.of(context, 'home_tap_connect');
     }
 
     final Color stateColor;
@@ -344,8 +345,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 14),
           Text(
             connected
-                ? 'Tap again to disconnect'
-                : 'One tap is all you need',
+                ? S.of(context, 'home_tap_disconnect')
+                : S.of(context, 'home_one_tap'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
@@ -400,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Active server',
+                    S.of(context, 'home_active_server'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -409,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    config.remark.isEmpty ? 'VPN Server' : config.remark,
+                    config.remark.isEmpty ? S.of(context, 'home_fallback_server') : config.remark,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -478,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'No server selected',
+              S.of(context, 'home_no_server'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -488,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Add a server or subscription first, then connect in one tap.',
+              S.of(context, 'home_no_server_guide'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -506,14 +507,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Color(0xFF6366F1),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(m.Symbols.dns_rounded, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Choose Server',
+                      S.of(context, 'home_choose_server'),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -542,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _LiveStatCard(
               icon: m.Symbols.arrow_downward_rounded,
-              label: 'Download',
+              label: S.of(context, 'home_download'),
               value: connected ? _formatSpeed(current.downloadSpeed) : '--',
             ),
           ),
@@ -550,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _LiveStatCard(
               icon: m.Symbols.arrow_upward_rounded,
-              label: 'Upload',
+              label: S.of(context, 'home_upload'),
               value: connected ? _formatSpeed(current.uploadSpeed) : '--',
             ),
           ),
@@ -558,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _LiveStatCard(
               icon: m.Symbols.schedule_rounded,
-              label: 'Duration',
+              label: S.of(context, 'home_duration'),
               value: connected ? _formatDuration(current.duration) : '--',
             ),
           ),
@@ -575,15 +576,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final IconData icon;
     final Color background;
     if (_isBusy) {
-      label = 'Please wait...';
+      label = S.of(context, 'home_wait');
       icon = m.Symbols.progress_activity_rounded;
       background = const Color(0xFF94A3B8);
     } else if (connected) {
-      label = 'Disconnect';
+      label = S.of(context, 'home_disconnect');
       icon = m.Symbols.power_settings_new_rounded;
       background = const Color(0xFFEF4444);
     } else {
-      label = 'Connect';
+      label = S.of(context, 'home_connect');
       icon = m.Symbols.bolt_rounded;
       background = const Color(0xFF6366F1);
     }
@@ -862,10 +863,10 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
             : m.Symbols.power_settings_new_rounded;
 
     final String semanticsLabel = widget.connecting
-        ? 'Connecting'
+        ? S.of(context, 'home_connecting')
         : widget.connected
-            ? 'Connected. Tap to disconnect'
-            : 'Not connected. Tap to connect';
+            ? S.of(context, 'home_sem_connected')
+            : S.of(context, 'home_sem_disconnected');
 
     final double pulseStrength =
         widget.connecting ? 0.05 : widget.connected ? 0.03 : 0.075;

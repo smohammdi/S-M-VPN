@@ -2,6 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 class PerAppProxyScreen extends StatefulWidget {
   const PerAppProxyScreen({super.key});
@@ -69,7 +70,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
-        title: const Text('Per-App Proxy', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        title: Text(S.of(context, 'perapp_title'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         commandBar: FilledButton(
           onPressed: () async {
             await _saveSelection();
@@ -77,9 +78,9 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
               await displayInfoBar(
                 context,
                 builder: (context, close) {
-                  return const InfoBar(
-                    title: Text('Saved'),
-                    content: Text('App selection saved successfully'),
+                  return InfoBar(
+                    title: Text(S.of(context, 'perapp_saved_title')),
+                    content: Text(S.of(context, 'perapp_saved_msg')),
                     severity: InfoBarSeverity.success,
                   );
                 },
@@ -87,7 +88,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
               );
             }
           },
-          child: const Text('Save'),
+          child: Text(S.of(context, 'perapp_save')),
         ),
       ),
       content: Column(
@@ -97,13 +98,13 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Select apps to route through VPN',
+                Text(
+                  S.of(context, 'perapp_guide'),
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 12),
                 TextBox(
-                  placeholder: 'Search apps...',
+                  placeholder: S.of(context, 'perapp_search_hint'),
                   prefix: const Padding(
                     padding: EdgeInsets.only(left: 12),
                     child: Icon(FluentIcons.search),
@@ -122,7 +123,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${_selectedApps.length} apps selected'),
+                Text(S.of(context, 'perapp_selected', {'count': '${_selectedApps.length}'})),
                 Row(
                   children: [
                     Button(
@@ -131,7 +132,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
                           _selectedApps = _apps.map((app) => app['packageName'] as String).toList();
                         });
                       },
-                      child: const Text('Select All'),
+                      child: Text(S.of(context, 'perapp_select_all')),
                     ),
                     const SizedBox(width: 8),
                     Button(
@@ -140,7 +141,7 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
                           _selectedApps.clear();
                         });
                       },
-                      child: const Text('Clear All'),
+                      child: Text(S.of(context, 'perapp_clear_all')),
                     ),
                   ],
                 ),
@@ -152,8 +153,8 @@ class _PerAppProxyScreenState extends State<PerAppProxyScreen> {
             child: _isLoading
                 ? const Center(child: ProgressRing())
                 : _filteredApps.isEmpty
-                    ? const Center(
-                        child: Text('No apps found'),
+                    ? Center(
+                        child: Text(S.of(context, 'perapp_empty')),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.fromLTRB(

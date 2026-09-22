@@ -1,7 +1,9 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:material_symbols_icons/symbols.dart' as m;
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:sm_vpn/screens/home_screen.dart';
 import 'package:sm_vpn/screens/servers_screen.dart';
 import 'package:sm_vpn/screens/subscriptions_screen.dart';
@@ -9,24 +11,53 @@ import 'package:sm_vpn/screens/settings_screen.dart';
 import 'package:sm_vpn/screens/onboarding_screen.dart';
 import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final paletteIndex = await ThemeProvider.loadIndex();
+  final languageCode = await LanguageProvider.loadCode();
+  runApp(MyApp(
+    initialPaletteIndex: paletteIndex,
+    initialLanguageCode: languageCode,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({
+    super.key,
+    required this.initialPaletteIndex,
+    required this.initialLanguageCode,
+  });
+
+  final int initialPaletteIndex;
+  final String initialLanguageCode;
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => V2RayService(),
-      child: FluentApp(
-        title: 'S-M VPN',
-        themeMode: ThemeMode.light,
-        theme: AppTheme.lightTheme(),
-        darkTheme: AppTheme.darkTheme(),
-        home: const MainNavigation(),
-        debugShowCheckedModeBanner: false,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => V2RayService()),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(initialIndex: initialPaletteIndex),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => LanguageProvider(initialCode: initialLanguageCode),
+        ),
+      ],
+      child: Builder(
+        builder: (context) {
+          context.watch<ThemeProvider>();
+          final language = context.watch<LanguageProvider>();
+          return FluentApp(
+            title: 'S-M VPN',
+            themeMode: ThemeMode.light,
+            theme: AppTheme.lightTheme(),
+            darkTheme: AppTheme.darkTheme(),
+            locale: language.locale,
+            supportedLocales: const [Locale('en'), Locale('fa')],
+            home: const MainNavigation(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }
@@ -50,13 +81,41 @@ class _MainNavigationState extends State<MainNavigation> {
     SettingsScreen(),
   ];
 
-  final List<FloatingNavItem> _navItems = defaultFloatingNavItems();
+  List<FloatingNavItem> _navItems(BuildContext context) {
+    return [
+      FloatingNavItem(
+        icon: m.Symbols.home_rounded,
+        activeIcon: m.Symbols.home_filled_rounded,
+        label: S.of(context, 'nav_home'),
+      ),
+      FloatingNavItem(
+        icon: m.Symbols.dns_rounded,
+        activeIcon: m.Symbols.dns_rounded,
+        label: S.of(context, 'nav_servers'),
+      ),
+      FloatingNavItem(
+        icon: m.Symbols.subscriptions_rounded,
+        activeIcon: m.Symbols.subscriptions_rounded,
+        label: S.of(context, 'nav_subscriptions'),
+      ),
+      FloatingNavItem(
+        icon: m.Symbols.settings_rounded,
+        activeIcon: m.Symbols.settings_rounded,
+        label: S.of(context, 'nav_settings'),
+      ),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
     _checkOnboarding();
+  }
+
+  Future<void> _initializeApp() async {
+    final service = Provider.of<V2RayService>(context, listen: false);
+    await service.initialize();
   }
 
   Future<void> _checkOnboarding() async {
@@ -73,11 +132,6 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _showOnboarding = false;
     });
-  }
-
-  Future<void> _initializeApp() async {
-    final service = Provider.of<V2RayService>(context, listen: false);
-    await service.initialize();
   }
 
   @override
@@ -97,7 +151,7 @@ class _MainNavigationState extends State<MainNavigation> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [AppTheme.primary, AppTheme.primaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -135,7 +189,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     _selectedIndex = index;
                   });
                 },
-                items: _navItems,
+                items: _navItems(context),
               ),
             ),
           ),

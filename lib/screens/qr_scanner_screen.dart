@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 /// QR code scanner: reads a config share-link from the camera or from a
 /// gallery image, then adds the parsed config to the saved server list.
@@ -29,7 +30,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     if (!mounted || _isProcessing) return;
 
     if (rawValue == null || rawValue.trim().isEmpty) {
-      _showSnackBar('Unable to read QR code', isError: true);
+      _showSnackBar(S.of(context, 'qr_unreadable'), isError: true);
       return;
     }
 
@@ -43,20 +44,20 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
       if (config != null) {
         if (await service.configExists(config)) {
-          _showSnackBar('Server already exists', isError: true);
+          _showSnackBar(S.of(context, 'qr_exists'), isError: true);
           await _controller.start();
           return;
         }
         await service.saveConfig(config);
         if (!mounted) return;
-        _showSnackBar('Configuration added successfully');
+        _showSnackBar(S.of(context, 'qr_added_ok'));
         Navigator.of(context).pop(config);
       } else {
-        _showSnackBar('Invalid configuration', isError: true);
+        _showSnackBar(S.of(context, 'qr_invalid'), isError: true);
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Invalid configuration', isError: true);
+      _showSnackBar(S.of(context, 'qr_invalid'), isError: true);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -74,7 +75,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       if (!mounted) return;
 
       if (capture == null || capture.barcodes.isEmpty) {
-        _showSnackBar('No QR code found in image', isError: true);
+        _showSnackBar(S.of(context, 'qr_no_qr'), isError: true);
         await _controller.start();
         return;
       }
@@ -82,7 +83,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       await _processScannedValue(capture.barcodes.first.rawValue);
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Failed to read image', isError: true);
+      _showSnackBar(S.of(context, 'qr_image_fail'), isError: true);
       try {
         await _controller.start();
       } catch (_) {}
@@ -106,12 +107,12 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
     // The host app is a FluentApp: provide the Material helpers the scanner
     // UI relies on (text direction + scaffold messenger).
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: Directionality.of(context),
       child: ScaffoldMessenger(
         child: Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
-            title: const Text('Scan QR Code'),
+            title: Text(S.of(context, 'qr_title')),
             backgroundColor: AppTheme.primary,
             foregroundColor: Colors.white,
           ),
@@ -129,7 +130,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
               if (_isProcessing)
                 Container(
                   color: Colors.black54,
-                  child: const Center(
+                  child: Center(
                     child: CircularProgressIndicator(color: AppTheme.primary),
                   ),
                 ),
@@ -142,7 +143,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
             backgroundColor: AppTheme.primary,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.image),
-            label: const Text('Pick from Gallery'),
+            label: Text(S.of(context, 'qr_gallery')),
           ),
         ),
       ),

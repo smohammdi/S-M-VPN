@@ -1,12 +1,162 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// A selectable brand palette: primary seed plus derived tones.
+/// The 3 preview dots of a palette are [primary, secondary, dark].
+class AppPalette {
+  const AppPalette({
+    required this.id,
+    required this.nameEn,
+    required this.nameFa,
+    required this.primary,
+    required this.light,
+    required this.dark,
+    required this.secondary,
+    required this.accent,
+  });
+
+  final String id;
+  final String nameEn;
+  final String nameFa;
+  final Color primary;
+  final Color light;
+  final Color dark;
+  final Color secondary;
+  final Color accent;
+
+  String name(String langCode) => langCode == 'fa' ? nameFa : nameEn;
+
+  List<Color> get dots => [primary, secondary, dark];
+
+  /// FluentUI accent swatch derived from the primary seed.
+  AccentColor get swatch => AccentColor.swatch(<String, Color>{
+        'darkest': _mix(primary, const Color(0xFF000000), 0.45),
+        'darker': _mix(primary, const Color(0xFF000000), 0.30),
+        'dark': _mix(primary, const Color(0xFF000000), 0.12),
+        'normal': primary,
+        'light': _mix(primary, const Color(0xFFFFFFFF), 0.25),
+        'lighter': _mix(primary, const Color(0xFFFFFFFF), 0.45),
+        'lightest': _mix(primary, const Color(0xFFFFFFFF), 0.65),
+      });
+
+  static Color _mix(Color a, Color b, double t) => Color.lerp(a, b, t)!;
+}
+
+/// The 8 built-in palettes. Aurora (indigo #6366F1) is the default.
+class AppPalettes {
+  static const AppPalette aurora = AppPalette(
+    id: 'aurora',
+    nameEn: 'Aurora',
+    nameFa: 'آرورا',
+    primary: Color(0xFF6366F1),
+    light: Color(0xFF818CF8),
+    dark: Color(0xFF4F46E5),
+    secondary: Color(0xFFA78BFA),
+    accent: Color(0xFFC7D2FE),
+  );
+  static const AppPalette ember = AppPalette(
+    id: 'ember',
+    nameEn: 'Ember',
+    nameFa: 'امبر',
+    primary: Color(0xFFF97316),
+    light: Color(0xFFFB923C),
+    dark: Color(0xFFEA580C),
+    secondary: Color(0xFFFDBA74),
+    accent: Color(0xFFFED7AA),
+  );
+  static const AppPalette midnight = AppPalette(
+    id: 'midnight',
+    nameEn: 'Midnight',
+    nameFa: 'میدنایت',
+    primary: Color(0xFF2563EB),
+    light: Color(0xFF60A5FA),
+    dark: Color(0xFF1D4ED8),
+    secondary: Color(0xFF93C5FD),
+    accent: Color(0xFFBFDBFE),
+  );
+  static const AppPalette sakura = AppPalette(
+    id: 'sakura',
+    nameEn: 'Sakura',
+    nameFa: 'ساکورا',
+    primary: Color(0xFFEC4899),
+    light: Color(0xFFF472B6),
+    dark: Color(0xFFDB2777),
+    secondary: Color(0xFFF9A8D4),
+    accent: Color(0xFFFBCFE8),
+  );
+  static const AppPalette citrus = AppPalette(
+    id: 'citrus',
+    nameEn: 'Citrus',
+    nameFa: 'سیتروس',
+    primary: Color(0xFFF59E0B),
+    light: Color(0xFFFBBF24),
+    dark: Color(0xFFD97706),
+    secondary: Color(0xFFFDE68A),
+    accent: Color(0xFFFEF3C7),
+  );
+  static const AppPalette mono = AppPalette(
+    id: 'mono',
+    nameEn: 'Mono',
+    nameFa: 'مونو',
+    primary: Color(0xFF64748B),
+    light: Color(0xFF94A3B8),
+    dark: Color(0xFF334155),
+    secondary: Color(0xFFCBD5E1),
+    accent: Color(0xFFE2E8F0),
+  );
+  static const AppPalette neonLime = AppPalette(
+    id: 'neon_lime',
+    nameEn: 'Neon Lime',
+    nameFa: 'لایم نئونی',
+    primary: Color(0xFF65A30D),
+    light: Color(0xFF84CC16),
+    dark: Color(0xFF3F6212),
+    secondary: Color(0xFFA3E635),
+    accent: Color(0xFFD9F99D),
+  );
+  static const AppPalette tokyo = AppPalette(
+    id: 'tokyo',
+    nameEn: 'Tokyo',
+    nameFa: 'توکیو',
+    primary: Color(0xFF06B6D4),
+    light: Color(0xFF22D3EE),
+    dark: Color(0xFF0E7490),
+    secondary: Color(0xFF67E8F9),
+    accent: Color(0xFFA5F3FC),
+  );
+
+  static const List<AppPalette> all = [
+    aurora,
+    ember,
+    midnight,
+    sakura,
+    citrus,
+    mono,
+    neonLime,
+    tokyo,
+  ];
+
+  static int indexOfId(String id) {
+    final i = all.indexWhere((p) => p.id == id);
+    return i < 0 ? 0 : i;
+  }
+}
 
 class AppTheme {
-  // ---- Brand palette (indigo / light purple) ----
-  static const Color primary = Color(0xFF6366F1); // indigo
-  static const Color primaryLight = Color(0xFF818CF8);
-  static const Color primaryDark = Color(0xFF4F46E5);
-  static const Color secondary = Color(0xFFA78BFA); // light purple
-  static const Color accent = Color(0xFFC7D2FE);
+  static AppPalette _palette = AppPalettes.aurora;
+
+  /// Currently active palette. Updated by [ThemeProvider].
+  static AppPalette get palette => _palette;
+  static void setPalette(AppPalette palette) {
+    _palette = palette;
+  }
+
+  // ---- Brand colors (follow the active palette) ----
+  static Color get primary => _palette.primary;
+  static Color get primaryLight => _palette.light;
+  static Color get primaryDark => _palette.dark;
+  static Color get secondary => _palette.secondary;
+  static Color get accent => _palette.accent;
 
   // ---- Light mode ----
   static const Color lightBackground = Color(0xFFF8FAFC);
@@ -22,20 +172,13 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF94A3B8);
   static const Color darkBorder = Color(0xFF334155);
 
-  /// Indigo accent swatch for the FluentUI theme (buttons, toggles, sliders).
-  static final AccentColor indigo = AccentColor.swatch(const <String, Color>{
-    'darkest': Color(0xFF4338CA),
-    'darker': Color(0xFF4F46E5),
-    'dark': Color(0xFF6366F1),
-    'normal': Color(0xFF6366F1),
-    'light': Color(0xFF818CF8),
-    'lighter': Color(0xFFA78BFA),
-    'lightest': Color(0xFFC7D2FE),
-  });
+  /// Accent swatch for the FluentUI theme (buttons, toggles, sliders).
+  /// Follows the active palette.
+  static AccentColor get accentSwatch => _palette.swatch;
 
   // ---- Legacy aliases used across the app ----
-  static const Color primaryGradientStart = primary;
-  static const Color primaryGradientEnd = primaryLight;
+  static Color get primaryGradientStart => primary;
+  static Color get primaryGradientEnd => primaryLight;
   static const Color connectedGreen = Color(0xFF22C55E);
   static const Color disconnectedRed = Color(0xFFEF4444);
   static const Color warningOrange = Color(0xFFF59E0B);
@@ -43,7 +186,7 @@ class AppTheme {
   static FluentThemeData lightTheme() {
     return FluentThemeData(
       brightness: Brightness.light,
-      accentColor: indigo,
+      accentColor: _palette.swatch,
       scaffoldBackgroundColor: lightBackground,
       navigationPaneTheme: const NavigationPaneThemeData(
         backgroundColor: lightSurface,
@@ -54,7 +197,7 @@ class AppTheme {
   static FluentThemeData darkTheme() {
     return FluentThemeData(
       brightness: Brightness.dark,
-      accentColor: indigo,
+      accentColor: _palette.swatch,
       scaffoldBackgroundColor: darkBackground,
       navigationPaneTheme: const NavigationPaneThemeData(
         backgroundColor: darkSurface,
@@ -210,5 +353,35 @@ class _ShimmerBoxState extends State<ShimmerBox>
         );
       },
     );
+  }
+}
+
+/// Holds the active color palette, persists it with the same
+/// SharedPreferences approach the app uses for settings, and rebuilds
+/// the UI on change.
+class ThemeProvider extends ChangeNotifier {
+  ThemeProvider({int initialIndex = 0}) {
+    _index = initialIndex.clamp(0, AppPalettes.all.length - 1);
+    AppTheme.setPalette(AppPalettes.all[_index]);
+  }
+
+  int _index = 0;
+
+  int get paletteIndex => _index;
+  AppPalette get palette => AppPalettes.all[_index];
+
+  Future<void> setPalette(int index) async {
+    final safe = index.clamp(0, AppPalettes.all.length - 1);
+    if (safe == _index) return;
+    _index = safe;
+    AppTheme.setPalette(AppPalettes.all[safe]);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme_palette', AppPalettes.all[safe].id);
+    notifyListeners();
+  }
+
+  static Future<int> loadIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    return AppPalettes.indexOfId(prefs.getString('theme_palette') ?? 'aurora');
   }
 }

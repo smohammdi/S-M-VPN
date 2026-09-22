@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart' as m;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 /// Storage key marking onboarding as seen. Same SharedPreferences pattern
 /// the app already uses for its settings.
@@ -32,33 +33,33 @@ class _OnboardingSlide {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const List<_OnboardingSlide> _slides = [
-    _OnboardingSlide(
-      icon: m.Symbols.waving_hand_rounded,
-      title: 'Welcome to S-M VPN',
-      subtitle: 'Fast, private and secure internet in one tap.',
-    ),
-    _OnboardingSlide(
-      icon: m.Symbols.qr_code_scanner_rounded,
-      title: 'Add your first server',
-      subtitle: 'Paste a config link, scan a QR code, or import a subscription list.',
-    ),
-    _OnboardingSlide(
-      icon: m.Symbols.touch_app_rounded,
-      title: 'One tap to connect',
-      subtitle: 'Tap the big button. Purple means off, green means you are protected.',
-    ),
-    _OnboardingSlide(
-      icon: m.Symbols.dns_rounded,
-      title: 'Manage servers with ease',
-      subtitle: 'Find all your servers and subscriptions in one clean list.',
-    ),
-    _OnboardingSlide(
-      icon: m.Symbols.settings_rounded,
-      title: 'Make it yours',
-      subtitle: 'Auto-connect on start, dark mode and more live in Settings.',
-    ),
-  ];
+  List<_OnboardingSlide> _slides(BuildContext context) => [
+        _OnboardingSlide(
+          icon: m.Symbols.waving_hand_rounded,
+          title: S.of(context, 'ob1_title'),
+          subtitle: S.of(context, 'ob1_desc'),
+        ),
+        _OnboardingSlide(
+          icon: m.Symbols.qr_code_scanner_rounded,
+          title: S.of(context, 'ob2_title'),
+          subtitle: S.of(context, 'ob2_desc'),
+        ),
+        _OnboardingSlide(
+          icon: m.Symbols.touch_app_rounded,
+          title: S.of(context, 'ob3_title'),
+          subtitle: S.of(context, 'ob3_desc'),
+        ),
+        _OnboardingSlide(
+          icon: m.Symbols.dns_rounded,
+          title: S.of(context, 'ob4_title'),
+          subtitle: S.of(context, 'ob4_desc'),
+        ),
+        _OnboardingSlide(
+          icon: m.Symbols.settings_rounded,
+          title: S.of(context, 'ob5_title'),
+          subtitle: S.of(context, 'ob5_desc'),
+        ),
+      ];
 
   final PageController _pageController = PageController();
   int _index = 0;
@@ -71,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _goNext() {
     HapticFeedback.lightImpact().ignore();
-    if (_index < _slides.length - 1) {
+    if (_index < _slides(context).length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubic,
@@ -95,7 +96,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = FluentTheme.of(context);
-    final bool isLast = _index == _slides.length - 1;
+    final bool isLast = _index == _slides(context).length - 1;
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -110,12 +111,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: [
                     Expanded(
                       child: Row(
-                        children: List.generate(_slides.length, (i) {
+                        children: List.generate(_slides(context).length, (i) {
                           final bool active = i <= _index;
                           return Expanded(
                             child: Container(
                               margin: EdgeInsets.only(
-                                right: i == _slides.length - 1 ? 0 : 6,
+                                right: i == _slides(context).length - 1 ? 0 : 6,
                               ),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
@@ -138,17 +139,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const SizedBox(width: 12),
                     HyperlinkButton(
                       onPressed: _skip,
-                      child: const Text('Skip'),
+                      child: Text(S.of(context, 'ob_skip')),
                     ),
                   ],
                 ),
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    itemCount: _slides.length,
+                    itemCount: _slides(context).length,
                     onPageChanged: (i) => setState(() => _index = i),
                     itemBuilder: (context, i) {
-                      final slide = _slides[i];
+                      final slide = _slides(context)[i];
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -223,7 +224,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     child: Text(
-                      isLast ? 'Get Started' : 'Next',
+                      isLast
+                          ? S.of(context, 'ob_get_started')
+                          : S.of(context, 'ob_next'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 /// Manual configuration editor: paste a share-link or JSON, pick a protocol,
 /// and add the resulting config to the saved server list.
@@ -62,17 +63,17 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
     final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
     final text = clipboardData?.text;
     if (text == null || text.isEmpty) {
-      _showSnackBar('Clipboard is empty', isError: true);
+      _showSnackBar(S.of(context, 'manual_clip_empty'), isError: true);
       return;
     }
     _textController.text = text;
-    _showSnackBar('Pasted from clipboard');
+    _showSnackBar(S.of(context, 'manual_pasted'));
   }
 
   Future<void> _addConfiguration() async {
     final rawText = _textController.text.trim();
     if (rawText.isEmpty) {
-      _showSnackBar('Please enter a configuration first', isError: true);
+      _showSnackBar(S.of(context, 'manual_enter_first'), isError: true);
       return;
     }
 
@@ -87,19 +88,19 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
 
       if (config != null) {
         if (await service.configExists(config)) {
-          _showSnackBar('Server already exists', isError: true);
+          _showSnackBar(S.of(context, 'manual_exists'), isError: true);
           return;
         }
         await service.saveConfig(config);
         if (!mounted) return;
-        _showSnackBar('Configuration added successfully');
+        _showSnackBar(S.of(context, 'manual_added_ok'));
         Navigator.of(context).pop(config);
       } else {
-        _showSnackBar('Invalid configuration', isError: true);
+        _showSnackBar(S.of(context, 'manual_invalid'), isError: true);
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Invalid configuration', isError: true);
+      _showSnackBar(S.of(context, 'manual_invalid'), isError: true);
     } finally {
       if (mounted) setState(() => _isAdding = false);
     }
@@ -123,12 +124,12 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
     // ScaffoldMessenger/Directionality pair. Wrap the Material UI in the
     // minimal providers it needs.
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: Directionality.of(context),
       child: ScaffoldMessenger(
         child: Scaffold(
           backgroundColor: AppTheme.lightBackground,
           appBar: AppBar(
-            title: const Text('Add Configuration'),
+            title: Text(S.of(context, 'manual_title')),
             backgroundColor: AppTheme.primary,
             foregroundColor: Colors.white,
           ),
@@ -140,14 +141,14 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                 DropdownButtonFormField<String>(
                   value: _selectedProtocol,
                   decoration: InputDecoration(
-                    labelText: 'Protocol',
+                    labelText: S.of(context, 'manual_protocol'),
                     labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: AppTheme.primary,
                         width: 2,
                       ),
@@ -170,14 +171,14 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                   controller: _textController,
                   maxLines: 10,
                   decoration: InputDecoration(
-                    labelText: 'Paste config link or JSON here',
+                    labelText: S.of(context, 'manual_hint'),
                     alignLabelWithHint: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: AppTheme.primary,
                         width: 2,
                       ),
@@ -188,10 +189,10 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                 OutlinedButton.icon(
                   onPressed: _pasteFromClipboard,
                   icon: const Icon(Icons.paste),
-                  label: const Text('Paste from Clipboard'),
+                  label: Text(S.of(context, 'manual_paste_btn')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.primary,
-                    side: const BorderSide(color: AppTheme.primary),
+                    side: BorderSide(color: AppTheme.primary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -219,8 +220,8 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Add Configuration',
+                      : Text(
+                          S.of(context, 'manual_add_btn'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -230,7 +231,7 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(S.of(context, 'manual_cancel')),
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/models/subscription.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({super.key});
@@ -68,7 +69,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
-        title: const Text('Subscriptions', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        title: Text(S.of(context, 'subs_title'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         commandBar: FilledButton(
           onPressed: () {
             HapticFeedback.lightImpact().ignore();
@@ -84,13 +85,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(m.Symbols.add_rounded, size: 18),
               SizedBox(width: 8),
               Text(
-                'Add Subscription',
+                S.of(context, 'subs_add'),
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ],
@@ -108,7 +109,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     _buildListSectionHeader(
                       context,
                       icon: m.Symbols.new_releases_rounded,
-                      title: 'Suggested Subscription',
+                      title: S.of(context, 'subs_suggested'),
                     ),
                     _buildSuggestedSubscriptionCard(_suggestedSubscription!),
                     const SizedBox(height: 20),
@@ -117,7 +118,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     _buildListSectionHeader(
                       context,
                       icon: m.Symbols.subscriptions_rounded,
-                      title: 'My Subscriptions (${_subscriptions.length})',
+                      title: S.of(context, 'subs_mine', {'n': '${_subscriptions.length}'})
                     ),
                     ..._subscriptions.asMap().entries.map(
                           (entry) => _buildSubscriptionCard(entry.value, entry.key),
@@ -199,7 +200,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [AppTheme.primary, AppTheme.primaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -230,7 +231,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Free CloudflarePlus servers',
+                    S.of(context, 'subs_suggested_desc'),
                     style: TextStyle(fontSize: 13, color: _secondaryText(context)),
                   ),
                 ],
@@ -252,13 +253,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   ),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(m.Symbols.add_rounded, size: 16),
                   SizedBox(width: 6),
                   Text(
-                    'Activate',
+                    S.of(context, 'subs_activate'),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -294,7 +295,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [AppTheme.primary, AppTheme.primaryLight],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -325,7 +326,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Updated ${_formatDate(subscription.lastUpdate)}',
+                        S.of(context, 'subs_updated', {'date': _formatDate(context, subscription.lastUpdate)}),
                         style: TextStyle(fontSize: 13, color: _secondaryText(context)),
                       ),
                     ],
@@ -354,7 +355,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        isActive ? 'Active' : 'Inactive',
+                        isActive ? S.of(context, 'subs_active') : S.of(context, 'subs_inactive'),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -375,11 +376,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(m.Symbols.dns_rounded, color: AppTheme.primary, size: 18),
+                  Icon(m.Symbols.dns_rounded, color: AppTheme.primary, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    '${subscription.configCount} servers',
-                    style: const TextStyle(
+                    S.of(context, 'subs_servers', {'count': '${subscription.configCount}'}),
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.primary,
@@ -407,14 +408,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           ),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(m.Symbols.refresh_rounded, size: 18),
                           SizedBox(width: 8),
                           Text(
-                            'Update',
+                            S.of(context, 'subs_update'),
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -439,14 +440,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           ),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(m.Symbols.delete_rounded, size: 18),
                           SizedBox(width: 8),
                           Text(
-                            'Delete',
+                            S.of(context, 'subs_delete'),
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -546,7 +547,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 ),
                 borderRadius: BorderRadius.circular(36),
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   m.Symbols.cloud_off_rounded,
                   size: 64,
@@ -555,14 +556,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'No subscriptions yet',
+            Text(
+              S.of(context, 'subs_empty_title'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             Text(
-              'Add a subscription link to get started with automatic server lists.',
+              S.of(context, 'subs_empty_guide'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: _secondaryText(context)),
             ),
@@ -583,14 +584,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     ),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(m.Symbols.add_rounded, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Add Subscription',
+                      S.of(context, 'subs_add'),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                     ),
                   ],
@@ -603,18 +604,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
+      return S.of(context, 'date_d', {'n': '${difference.inDays}'});
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
+      return S.of(context, 'date_h', {'n': '${difference.inHours}'});
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
+      return S.of(context, 'date_m', {'n': '${difference.inMinutes}'});
     } else {
-      return 'Just now';
+      return S.of(context, 'date_now');
     }
   }
 
@@ -625,19 +626,19 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     await showDialog(
       context: context,
       builder: (context) => ContentDialog(
-        title: const Text('Add Subscription'),
+        title: Text(S.of(context, 'subs_add')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Name',
+            Text(
+              S.of(context, 'subs_name_label'),
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 10),
             TextBox(
               controller: nameController,
-              placeholder: 'My Subscription',
+              placeholder: S.of(context, 'subs_name_hint'),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -656,7 +657,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(S.of(context, 'subs_cancel')),
           ),
           FilledButton(
             onPressed: () async {
@@ -692,8 +693,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     context,
                     builder: (context, close) {
                       return InfoBar(
-                        title: const Text('Success'),
-                        content: Text('Added ${configs.length} servers'),
+                        title: Text(S.of(context, 'subs_success_title')),
+                        content: Text(S.of(context, 'subs_success_msg', {'count': '${configs.length}'})),
                         severity: InfoBarSeverity.success,
                       );
                     },
@@ -706,7 +707,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     context,
                     builder: (context, close) {
                       return InfoBar(
-                        title: const Text('Error'),
+                        title: Text(S.of(context, 'subs_error_title')),
                         content: Text(e.toString()),
                         severity: InfoBarSeverity.error,
                       );
@@ -716,7 +717,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 }
               }
             },
-            child: const Text('Add'),
+            child: Text(S.of(context, 'subs_add_btn')),
           ),
         ],
       ),
@@ -750,8 +751,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: const Text('Subscription Activated'),
-              content: Text('Added ${configs.length} servers'),
+              title: Text(S.of(context, 'subs_activated_title')),
+              content: Text(S.of(context, 'subs_activated_msg', {'count': '${configs.length}'})),
               severity: InfoBarSeverity.success,
             );
           },
@@ -764,7 +765,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: const Text('Activation Failed'),
+              title: Text(S.of(context, 'subs_activate_failed_title')),
               content: Text(e.toString()),
               severity: InfoBarSeverity.error,
             );
@@ -807,8 +808,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: const Text('Updated'),
-              content: Text('Updated ${configs.length} servers'),
+              title: Text(S.of(context, 'subs_updated_title')),
+              content: Text(S.of(context, 'subs_updated_msg', {'count': '${configs.length}'})),
               severity: InfoBarSeverity.success,
             );
           },
@@ -821,7 +822,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: const Text('Error'),
+              title: Text(S.of(context, 'subs_error_title')),
               content: Text(e.toString()),
               severity: InfoBarSeverity.error,
             );
@@ -836,14 +837,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     await showDialog(
       context: context,
       builder: (context) => ContentDialog(
-        title: const Text('Delete Subscription'),
-        content: Text('Are you sure you want to delete "${subscription.name}"?'),
+        title: Text(S.of(context, 'subs_delete_title')),
+        content: Text(S.of(context, 'subs_delete_msg', {'name': subscription.name})),
         actions: [
           Button(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(S.of(context, 'subs_cancel')),
           ),
           FilledButton(
             onPressed: () async {
@@ -859,8 +860,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 await displayInfoBar(
                   context,
                   builder: (context, close) {
-                    return const InfoBar(
-                      title: Text('Deleted'),
+                    return InfoBar(
+                      title: Text(S.of(context, 'subs_deleted_title')),
                       severity: InfoBarSeverity.info,
                     );
                   },
@@ -868,7 +869,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 );
               }
             },
-            child: const Text('Delete'),
+            child: Text(S.of(context, 'subs_delete')),
           ),
         ],
       ),

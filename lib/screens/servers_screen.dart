@@ -6,6 +6,7 @@ import 'package:sm_vpn/models/v2ray_config.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:sm_vpn/screens/manual_config_screen.dart';
 import 'package:sm_vpn/screens/qr_scanner_screen.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:flutter/services.dart';
 
 class ServersScreen extends StatefulWidget {
@@ -137,9 +138,9 @@ class _ServersScreenState extends State<ServersScreen> {
           await displayInfoBar(
             context,
             builder: (context, close) {
-              return const InfoBar(
-                title: Text('Empty Clipboard'),
-                content: Text('Please copy a config first'),
+              return InfoBar(
+                title: Text(S.of(context, 'clip_empty_title')),
+                content: Text(S.of(context, 'clip_empty_msg')),
                 severity: InfoBarSeverity.warning,
               );
             },
@@ -158,9 +159,9 @@ class _ServersScreenState extends State<ServersScreen> {
             await displayInfoBar(
               context,
               builder: (context, close) {
-                return const InfoBar(
-                  title: Text('Duplicate Server'),
-                  content: Text('This server already exists'),
+                return InfoBar(
+                  title: Text(S.of(context, 'clip_duplicate_title')),
+                  content: Text(S.of(context, 'clip_duplicate_msg')),
                   severity: InfoBarSeverity.warning,
                 );
               },
@@ -176,8 +177,8 @@ class _ServersScreenState extends State<ServersScreen> {
             context,
             builder: (context, close) {
               return InfoBar(
-                title: const Text('Config Added'),
-                content: Text('${config.remark} added successfully'),
+                title: Text(S.of(context, 'clip_added_title')),
+                content: Text(S.of(context, 'clip_added_msg', {'remark': config.remark})),
                 severity: InfoBarSeverity.success,
               );
             },
@@ -189,9 +190,9 @@ class _ServersScreenState extends State<ServersScreen> {
           await displayInfoBar(
             context,
             builder: (context, close) {
-              return const InfoBar(
-                title: Text('Invalid Configuration'),
-                content: Text('The clipboard content is not a valid config'),
+              return InfoBar(
+                title: Text(S.of(context, 'clip_invalid_title')),
+                content: Text(S.of(context, 'clip_invalid_msg')),
                 severity: InfoBarSeverity.error,
               );
             },
@@ -205,7 +206,7 @@ class _ServersScreenState extends State<ServersScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: const Text('Import Failed'),
+              title: Text(S.of(context, 'clip_failed_title')),
               content: Text(e.toString()),
               severity: InfoBarSeverity.error,
             );
@@ -244,18 +245,18 @@ class _ServersScreenState extends State<ServersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => ContentDialog(
-        title: const Text('Delete Server'),
-        content: Text('Delete "${config.remark}"? This cannot be undone.'),
+        title: Text(S.of(context, 'del_title')),
+        content: Text(S.of(context, 'del_msg', {'remark': config.remark})),
         actions: [
           Button(
-            child: const Text('Cancel'),
+            child: Text(S.of(context, 'dialog_cancel')),
             onPressed: () => Navigator.pop(context, false),
           ),
           FilledButton(
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(AppTheme.disconnectedRed),
             ),
-            child: const Text('Delete'),
+            child: Text(S.of(context, 'dialog_delete')),
             onPressed: () {
               HapticFeedback.lightImpact().ignore();
               Navigator.pop(context, true);
@@ -282,8 +283,8 @@ class _ServersScreenState extends State<ServersScreen> {
         context,
         builder: (context, close) {
           return InfoBar(
-            title: const Text('Server Deleted'),
-            content: Text('${config.remark} has been deleted'),
+            title: Text(S.of(context, 'deleted_title')),
+            content: Text(S.of(context, 'deleted_msg', {'remark': config.remark})),
             severity: InfoBarSeverity.error,
           );
         },
@@ -296,14 +297,14 @@ class _ServersScreenState extends State<ServersScreen> {
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
-        title: const Text('Servers', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        title: Text(S.of(context, 'servers_title'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         commandBar: DropDownButton(
-          title: const Text('Menu'),
+          title: Text(S.of(context, 'menu_title')),
           leading: const Icon(m.Icons.more_vert, size: 16),
           items: [
             MenuFlyoutItem(
               leading: const Icon(m.Icons.refresh, size: 16),
-              text: const Text('Refresh'),
+              text: Text(S.of(context, 'menu_refresh')),
               onPressed: () {
                 HapticFeedback.lightImpact().ignore();
                 _loadConfigs();
@@ -311,7 +312,7 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
             MenuFlyoutItem(
               leading: const Icon(m.Icons.speed, size: 16),
-              text: Text(_isSorting ? 'Pinging...' : 'Ping All'),
+              text: Text(_isSorting ? S.of(context, 'menu_pinging') : S.of(context, 'menu_ping_all')),
               onPressed: _isSorting
                   ? null
                   : () {
@@ -322,7 +323,7 @@ class _ServersScreenState extends State<ServersScreen> {
             const MenuFlyoutSeparator(),
             MenuFlyoutItem(
               leading: const Icon(m.Icons.content_paste, size: 16),
-              text: const Text('Paste from Clipboard'),
+              text: Text(S.of(context, 'menu_paste')),
               onPressed: () {
                 _importFromClipboard();
               },
@@ -337,7 +338,7 @@ class _ServersScreenState extends State<ServersScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextBox(
-                  placeholder: 'Search servers...',
+                  placeholder: S.of(context, 'servers_search_hint'),
                   prefix: const Padding(
                     padding: EdgeInsets.only(left: 12),
                     child: Icon(m.Icons.search, size: 16),
@@ -358,14 +359,14 @@ class _ServersScreenState extends State<ServersScreen> {
                             padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight + 96),
                             children: [
                               if (_manualConfigs.isNotEmpty) ...[
-                                _buildSectionHeader(m.Icons.edit_note, 'Manual Configs (${_manualConfigs.length})'),
+                                _buildSectionHeader(m.Icons.edit_note, S.of(context, 'servers_manual', {'n': '${_manualConfigs.length}'})),
                                 ..._manualConfigs.asMap().entries.map(
                                       (e) => _buildServerCard(e.value, e.key),
                                     ),
                                 const SizedBox(height: 24),
                               ],
                               if (_subscriptionConfigs.isNotEmpty) ...[
-                                _buildSectionHeader(m.Icons.cloud_outlined, 'Subscriptions (${_subscriptionConfigs.length})'),
+                                _buildSectionHeader(m.Icons.cloud_outlined, S.of(context, 'servers_subs', {'n': '${_subscriptionConfigs.length}'})),
                                 ..._subscriptionConfigs.asMap().entries.map(
                                       (e) => _buildServerCard(
                                           e.value, e.key + _manualConfigs.length),
@@ -456,7 +457,7 @@ class _ServersScreenState extends State<ServersScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Add Server', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  Text(S.of(context, 'sheet_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
@@ -465,10 +466,10 @@ class _ServersScreenState extends State<ServersScreen> {
                       onPressed: _navigateToManualConfig,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Icon(m.Icons.edit_note, size: 20),
                           SizedBox(width: 8),
-                          Text('Add Manually'),
+                          Text(S.of(context, 'empty_add_manually')),
                         ],
                       ),
                     ),
@@ -481,10 +482,10 @@ class _ServersScreenState extends State<ServersScreen> {
                       onPressed: _navigateToQrScanner,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Icon(m.Icons.qr_code_scanner, size: 20),
                           SizedBox(width: 8),
-                          Text('Scan QR'),
+                          Text(S.of(context, 'empty_scan_qr')),
                         ],
                       ),
                     ),
@@ -500,10 +501,10 @@ class _ServersScreenState extends State<ServersScreen> {
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Icon(m.Icons.content_paste, size: 20),
                           SizedBox(width: 8),
-                          Text('Paste'),
+                          Text(S.of(context, 'empty_paste')),
                         ],
                       ),
                     ),
@@ -578,13 +579,13 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'No servers yet',
+          Text(
+            S.of(context, 'empty_servers_title'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Add your first server manually, scan a QR code, or paste a config from clipboard',
+          Text(
+            S.of(context, 'empty_servers_guide'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: AppTheme.lightTextSecondary),
           ),
@@ -596,10 +597,10 @@ class _ServersScreenState extends State<ServersScreen> {
               onPressed: _navigateToManualConfig,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(m.Icons.edit_note, size: 20),
                   SizedBox(width: 8),
-                  Text('Add Manually'),
+                  Text(S.of(context, 'empty_add_manually')),
                 ],
               ),
             ),
@@ -612,10 +613,10 @@ class _ServersScreenState extends State<ServersScreen> {
               onPressed: _navigateToQrScanner,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(m.Icons.qr_code_scanner, size: 20),
                   SizedBox(width: 8),
-                  Text('Scan QR'),
+                  Text(S.of(context, 'empty_scan_qr')),
                 ],
               ),
             ),
@@ -628,10 +629,10 @@ class _ServersScreenState extends State<ServersScreen> {
               onPressed: _importFromClipboard,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(m.Icons.content_paste, size: 20),
                   SizedBox(width: 8),
-                  Text('Paste'),
+                  Text(S.of(context, 'empty_paste')),
                 ],
               ),
             ),
@@ -818,8 +819,8 @@ class _ServersScreenState extends State<ServersScreen> {
         context,
         builder: (context, close) {
           return InfoBar(
-            title: const Text('Server Selected'),
-            content: Text('${config.remark} is now selected'),
+            title: Text(S.of(context, 'selected_title')),
+            content: Text(S.of(context, 'selected_msg', {'remark': config.remark})),
             severity: InfoBarSeverity.success,
           );
         },
@@ -902,8 +903,8 @@ class _ServersScreenState extends State<ServersScreen> {
         await displayInfoBar(
           context,
           builder: (context, close) {
-            return const InfoBar(
-              title: Text('Disconnected'),
+            return InfoBar(
+              title: Text(S.of(context, 'disconnected_title')),
               severity: InfoBarSeverity.info,
             );
           },
@@ -921,9 +922,9 @@ class _ServersScreenState extends State<ServersScreen> {
           context,
           builder: (context, close) {
             return InfoBar(
-              title: Text(success ? 'Connected' : 'Connection Failed'),
+              title: Text(success ? S.of(context, 'connected_title') : S.of(context, 'connect_failed_title')),
               content: Text(
-                success ? 'Connected to ${config.remark}' : 'Failed to connect to server',
+                success ? S.of(context, 'connected_msg', {'remark': config.remark}) : S.of(context, 'connect_failed_msg'),
               ),
               severity: success ? InfoBarSeverity.success : InfoBarSeverity.error,
             );

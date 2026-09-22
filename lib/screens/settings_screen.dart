@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart' as m;
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
+import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sm_vpn/screens/per_app_proxy_screen.dart';
@@ -51,8 +52,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
-      header: const PageHeader(
-        title: Text('Settings', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+      header: PageHeader(
+        title: Text(S.of(context, 'settings_title'),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
       ),
       content: Directionality(
         textDirection: Directionality.of(context),
@@ -60,12 +62,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
           children: [
             _buildSection(
-              'General',
+              S.of(context, 'set_general'),
               m.Symbols.settings_rounded,
               [
                 _buildSettingTile(
-                  'Auto Connect',
-                  'Automatically connect on app start',
+                  S.of(context, 'set_autoconnect'),
+                  S.of(context, 'set_autoconnect_desc'),
                   m.Symbols.bolt_rounded,
                   _autoConnect,
                   (value) {
@@ -77,8 +79,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 _buildSettingTile(
-                  'Kill Switch',
-                  'Block internet if VPN disconnects',
+                  S.of(context, 'set_killswitch'),
+                  S.of(context, 'set_killswitch_desc'),
                   m.Symbols.shield_rounded,
                   _killSwitch,
                   (value) {
@@ -93,12 +95,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 4),
             _buildSection(
-              'Network',
+              S.of(context, 'set_network'),
               m.Symbols.wifi_rounded,
               [
                 _buildNavigationTile(
-                  'Per-App Proxy',
-                  'Choose which apps use VPN',
+                  S.of(context, 'set_perapp'),
+                  S.of(context, 'set_perapp_desc'),
                   m.Symbols.tune_rounded,
                   () {
                     HapticFeedback.lightImpact().ignore();
@@ -112,12 +114,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 4),
             _buildSection(
-              'Appearance',
+              S.of(context, 'set_appearance'),
               m.Symbols.palette_rounded,
               [
                 _buildSettingTile(
-                  'Dark Mode',
-                  'Use dark theme',
+                  S.of(context, 'set_darkmode'),
+                  S.of(context, 'set_darkmode_desc'),
                   m.Symbols.dark_mode_rounded,
                   _darkMode,
                   (value) {
@@ -128,22 +130,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _saveSetting('dark_mode', value);
                   },
                 ),
+                _buildPaletteTile(context),
+                _buildLanguageTile(context),
               ],
             ),
             const SizedBox(height: 4),
             _buildSection(
-              'Data',
+              S.of(context, 'set_data'),
               m.Symbols.storage_rounded,
               [
                 _buildActionTile(
-                  'Clear Server Cache',
-                  'Clear all cached server data',
+                  S.of(context, 'set_clear_cache'),
+                  S.of(context, 'set_clear_cache_desc'),
                   m.Symbols.cached_rounded,
                   () => _clearCache(),
                 ),
                 _buildActionTile(
-                  'Clear All Data',
-                  'Reset all settings and servers',
+                  S.of(context, 'set_clear_all'),
+                  S.of(context, 'set_clear_all_desc'),
                   m.Symbols.delete_forever_rounded,
                   () => _clearAllData(),
                   danger: true,
@@ -152,15 +156,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 4),
             _buildSection(
-              'About',
+              S.of(context, 'set_about'),
               m.Symbols.info_rounded,
               [
-                _buildInfoTile('App Name', 'S-M'),
-                _buildInfoTile('Version', '1.0.0'),
-                _buildInfoTile('Build', '1'),
+                _buildInfoTile(S.of(context, 'set_appname'), 'S-M'),
+                _buildInfoTile(S.of(context, 'set_version'), '1.0.0'),
+                _buildInfoTile(S.of(context, 'set_build'), '1'),
                 _buildNavigationTile(
-                  'Privacy Policy',
-                  'View our privacy policy',
+                  S.of(context, 'set_privacy'),
+                  S.of(context, 'set_privacy_desc'),
                   m.Symbols.description_rounded,
                   () {
                     HapticFeedback.lightImpact().ignore();
@@ -301,7 +305,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          child: const Text('Execute'),
+          child: Text(S.of(context, 'set_execute')),
         ),
       ),
     );
@@ -345,6 +349,235 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildPaletteTile(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final langProvider = context.watch<LanguageProvider>();
+    final palette = themeProvider.palette;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: Icon(m.Symbols.palette_rounded, color: AppTheme.primary, size: 22),
+          ),
+        ),
+        title: Text(
+          S.of(context, 'set_palette'),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${S.of(context, 'set_palette_desc')} • ${palette.name(langProvider.code)}',
+          style: TextStyle(fontSize: 12, color: _secondaryText(context)),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...palette.dots.map(
+              (c) => Container(
+                width: 18,
+                height: 18,
+                margin: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  color: c,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFFFFFFF).withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              m.Symbols.chevron_right_rounded,
+              size: 22,
+              color: _secondaryText(context),
+            ),
+          ],
+        ),
+        onPressed: () => _showPaletteDialog(context),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(BuildContext context) {
+    final langProvider = context.watch<LanguageProvider>();
+    final String current = langProvider.language == AppLanguage.system
+        ? S.of(context, 'lang_system')
+        : langProvider.language == AppLanguage.english
+            ? S.of(context, 'lang_english')
+            : S.of(context, 'lang_persian');
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: Icon(m.Symbols.language_rounded, color: AppTheme.primary, size: 22),
+          ),
+        ),
+        title: Text(
+          S.of(context, 'set_language'),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${S.of(context, 'set_language_desc')} • $current',
+          style: TextStyle(fontSize: 12, color: _secondaryText(context)),
+        ),
+        trailing: Icon(
+          m.Symbols.chevron_right_rounded,
+          size: 22,
+          color: _secondaryText(context),
+        ),
+        onPressed: () => _showLanguageDialog(context),
+      ),
+    );
+  }
+
+  Future<void> _showPaletteDialog(BuildContext context) async {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final langProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final bool isDark =
+        FluentTheme.of(context).brightness == Brightness.dark;
+    final Color inactiveBorder =
+        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    await showDialog(
+      context: context,
+      builder: (context) => ContentDialog(
+        title: Text(S.of(context, 'set_palette_title')),
+        content: SizedBox(
+          width: 360,
+          child: GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 2.4,
+            children: AppPalettes.all.map((palette) {
+              final bool active = palette.id == themeProvider.palette.id;
+              return GestureDetector(
+                onTap: () async {
+                  HapticFeedback.selectionClick().ignore();
+                  await themeProvider.setPalette(
+                    AppPalettes.all.indexOf(palette),
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: active
+                          ? const Color(0xFF6366F1)
+                          : inactiveBorder,
+                      width: active ? 2.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      ...palette.dots.map(
+                        (c) => Container(
+                          width: 18,
+                          height: 18,
+                          margin: const EdgeInsets.only(right: 4),
+                          decoration: BoxDecoration(
+                            color: c,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          palette.name(langProvider.code),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          Button(
+            onPressed: () => Navigator.pop(context),
+            child: Text(S.of(context, 'set_cancel')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showLanguageDialog(BuildContext context) async {
+    final langProvider = Provider.of<LanguageProvider>(context, listen: false);
+
+    String label(AppLanguage option) {
+      if (option == AppLanguage.system) return S.of(context, 'lang_system');
+      if (option == AppLanguage.english) return S.of(context, 'lang_english');
+      return S.of(context, 'lang_persian');
+    }
+
+    await showDialog(
+      context: context,
+      builder: (context) => ContentDialog(
+        title: Text(S.of(context, 'set_language_title')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppLanguage.values.map((option) {
+            final bool active = langProvider.language == option;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                title: Text(
+                  label(option),
+                  style: TextStyle(
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+                trailing: active
+                    ? Icon(m.Symbols.check_rounded,
+                        color: AppTheme.primary, size: 22)
+                    : null,
+                onPressed: () async {
+                  HapticFeedback.selectionClick().ignore();
+                  await langProvider.setLanguage(option);
+                  if (context.mounted) Navigator.pop(context);
+                },
+              ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          Button(
+            onPressed: () => Navigator.pop(context),
+            child: Text(S.of(context, 'set_cancel')),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoTile(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -372,9 +605,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await displayInfoBar(
         context,
         builder: (context, close) {
-          return const InfoBar(
-            title: Text('Unable to open'),
-            content: Text('Could not open the privacy policy link'),
+          return InfoBar(
+            title: Text(S.of(context, 'set_open_fail_title')),
+            content: Text(S.of(context, 'set_open_fail_msg')),
             severity: InfoBarSeverity.error,
           );
         },
@@ -387,14 +620,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showDialog(
       context: context,
       builder: (context) => ContentDialog(
-        title: const Text('Clear Cache'),
-        content: const Text('This will clear all cached server data including ping results.'),
+        title: Text(S.of(context, 'set_cache_title')),
+        content: Text(S.of(context, 'set_cache_msg')),
         actions: [
           Button(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(S.of(context, 'set_cancel')),
           ),
           FilledButton(
             onPressed: () async {
@@ -407,8 +640,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await displayInfoBar(
                   context,
                   builder: (context, close) {
-                    return const InfoBar(
-                      title: Text('Cache Cleared'),
+                    return InfoBar(
+                      title: Text(S.of(context, 'set_cache_done')),
                       severity: InfoBarSeverity.success,
                     );
                   },
@@ -416,7 +649,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
             },
-            child: const Text('Clear'),
+            child: Text(S.of(context, 'set_clear')),
           ),
         ],
       ),
@@ -427,14 +660,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showDialog(
       context: context,
       builder: (context) => ContentDialog(
-        title: const Text('Clear All Data'),
-        content: const Text('This will delete all servers, subscriptions, and settings. This action cannot be undone.'),
+        title: Text(S.of(context, 'set_alldata_title')),
+        content: Text(S.of(context, 'set_alldata_msg')),
         actions: [
           Button(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Cancel'),
+            child: Text(S.of(context, 'set_cancel')),
           ),
           FilledButton(
             onPressed: () async {
@@ -452,8 +685,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await displayInfoBar(
                   context,
                   builder: (context, close) {
-                    return const InfoBar(
-                      title: Text('All Data Cleared'),
+                    return InfoBar(
+                      title: Text(S.of(context, 'set_all_done')),
                       severity: InfoBarSeverity.warning,
                     );
                   },
@@ -461,7 +694,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
             },
-            child: const Text('Clear All'),
+            child: Text(S.of(context, 'set_clear_all_btn')),
           ),
         ],
       ),
