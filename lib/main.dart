@@ -6,6 +6,7 @@ import 'package:sm_vpn/screens/home_screen.dart';
 import 'package:sm_vpn/screens/servers_screen.dart';
 import 'package:sm_vpn/screens/subscriptions_screen.dart';
 import 'package:sm_vpn/screens/settings_screen.dart';
+import 'package:sm_vpn/screens/onboarding_screen.dart';
 import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
 
 void main() {
@@ -40,6 +41,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  bool? _showOnboarding;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -54,6 +56,23 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _initializeApp();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final seen = await isOnboardingSeen();
+    if (!mounted) return;
+    setState(() {
+      _showOnboarding = !seen;
+    });
+  }
+
+  Future<void> _finishOnboarding() async {
+    await setOnboardingSeen();
+    if (!mounted) return;
+    setState(() {
+      _showOnboarding = false;
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -63,6 +82,12 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showOnboarding == null) {
+      return const SizedBox.shrink();
+    }
+    if (_showOnboarding!) {
+      return OnboardingScreen(onFinished: _finishOnboarding);
+    }
     return NavigationView(
       appBar: NavigationAppBar(
         automaticallyImplyLeading: false,
