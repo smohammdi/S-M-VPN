@@ -23,6 +23,7 @@ class _ServersScreenState extends State<ServersScreen> {
   String _searchQuery = '';
   final Map<String, int?> _pingResults = {};
   String? _selectedConfigId;
+  final Set<String> _animatedCardIds = {};
 
   @override
   void initState() {
@@ -126,6 +127,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _importFromClipboard() async {
+    HapticFeedback.lightImpact().ignore();
     final service = Provider.of<V2RayService>(context, listen: false);
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
@@ -215,6 +217,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _navigateToManualConfig() async {
+    HapticFeedback.lightImpact().ignore();
     setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
@@ -226,6 +229,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _navigateToQrScanner() async {
+    HapticFeedback.lightImpact().ignore();
     setState(() => _showAddSheet = false);
     await Navigator.push(
       context,
@@ -252,7 +256,10 @@ class _ServersScreenState extends State<ServersScreen> {
               backgroundColor: WidgetStatePropertyAll(AppTheme.disconnectedRed),
             ),
             child: const Text('Delete'),
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              HapticFeedback.lightImpact().ignore();
+              Navigator.pop(context, true);
+            },
           ),
         ],
       ),
@@ -298,6 +305,7 @@ class _ServersScreenState extends State<ServersScreen> {
               leading: const Icon(m.Icons.refresh, size: 16),
               text: const Text('Refresh'),
               onPressed: () {
+                HapticFeedback.lightImpact().ignore();
                 _loadConfigs();
               },
             ),
@@ -307,6 +315,7 @@ class _ServersScreenState extends State<ServersScreen> {
               onPressed: _isSorting
                   ? null
                   : () {
+                      HapticFeedback.lightImpact().ignore();
                       _pingAllServers();
                     },
             ),
@@ -350,12 +359,17 @@ class _ServersScreenState extends State<ServersScreen> {
                             children: [
                               if (_manualConfigs.isNotEmpty) ...[
                                 _buildSectionHeader(m.Icons.edit_note, 'Manual Configs (${_manualConfigs.length})'),
-                                ..._manualConfigs.map((config) => _buildServerCard(config)),
+                                ..._manualConfigs.asMap().entries.map(
+                                      (e) => _buildServerCard(e.value, e.key),
+                                    ),
                                 const SizedBox(height: 24),
                               ],
                               if (_subscriptionConfigs.isNotEmpty) ...[
                                 _buildSectionHeader(m.Icons.cloud_outlined, 'Subscriptions (${_subscriptionConfigs.length})'),
-                                ..._subscriptionConfigs.map((config) => _buildServerCard(config)),
+                                ..._subscriptionConfigs.asMap().entries.map(
+                                      (e) => _buildServerCard(
+                                          e.value, e.key + _manualConfigs.length),
+                                    ),
                               ],
                             ],
                           ),
@@ -382,6 +396,7 @@ class _ServersScreenState extends State<ServersScreen> {
               child: IconButton(
                 icon: const Icon(m.Icons.add, color: Colors.white, size: 28),
                 onPressed: () {
+                  HapticFeedback.lightImpact().ignore();
                   setState(() => _showAddSheet = true);
                 },
               ),
@@ -588,13 +603,13 @@ class _ServersScreenState extends State<ServersScreen> {
     );
   }
 
-  Widget _buildServerCard(V2RayConfig config) {
+  Widget _buildServerCard(V2RayConfig config, [int index = 0]) {
     final ping = _pingResults[config.id];
     final service = Provider.of<V2RayService>(context, listen: false);
     final isConnected = service.activeConfig?.id == config.id;
     final isSelected = _selectedConfigId == config.id;
 
-    return Container(
+    final Widget card = Container(
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -607,20 +622,44 @@ class _ServersScreenState extends State<ServersScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.getPingColor(ping).withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(
-                _getProtocolIcon(config.configType),
-                color: AppTheme.getPingColor(ping),
-                size: 24,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.getPingColor(ping).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    _getProtocolIcon(config.configType),
+                    color: AppTheme.getPingColor(ping),
+                    size: 24,
+                  ),
+                ),
               ),
-            ),
+              if (isConnected)
+                Positioned(
+                  right: -1,
+                  bottom: -1,
+                  child: Container(
+                    width: 15,
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: FluentTheme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
+                        width: 2.5,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -628,18 +667,26 @@ class _ServersScreenState extends State<ServersScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  config.remark,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        config.remark,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildProtocolChip(config),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${config.address}:${config.port} \u2022 ${config.protocolDisplay}',
+                  '${config.address}:${config.port}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
+                  style: TextStyle(fontSize: 14, color: _secondaryText()),
                 ),
               ],
             ),
@@ -677,7 +724,10 @@ class _ServersScreenState extends State<ServersScreen> {
           if (ping == null)
             IconButton(
               icon: const Icon(m.Icons.speed, size: 24),
-              onPressed: () => _pingSingleServer(config),
+              onPressed: () {
+                HapticFeedback.lightImpact().ignore();
+                _pingSingleServer(config);
+              },
             ),
           if (!isConnected)
             IconButton(
@@ -686,22 +736,35 @@ class _ServersScreenState extends State<ServersScreen> {
                 color: isSelected ? AppTheme.primary : null,
                 size: 24,
               ),
-              onPressed: () => _handleSelectConfig(config),
+              onPressed: () {
+                HapticFeedback.selectionClick().ignore();
+                _handleSelectConfig(config);
+              },
             ),
           IconButton(
             icon: Icon(
               isConnected ? m.Icons.stop : m.Icons.play_arrow,
               size: 24,
             ),
-            onPressed: () => _handleConnect(config),
+            onPressed: () {
+              HapticFeedback.lightImpact().ignore();
+              _handleConnect(config);
+            },
           ),
           IconButton(
-            onPressed: () => _confirmDelete(config),
+            onPressed: () {
+              HapticFeedback.lightImpact().ignore();
+              _confirmDelete(config);
+            },
             icon: Icon(m.Icons.delete_outline, color: Colors.red, size: 24),
           ),
         ],
       ),
     );
+    if (_animatedCardIds.add(config.id)) {
+      return _EntranceAnimation(index: index, child: card);
+    }
+    return card;
   }
 
   Future<void> _handleSelectConfig(V2RayConfig config) async {
@@ -725,6 +788,46 @@ class _ServersScreenState extends State<ServersScreen> {
         duration: const Duration(seconds: 2),
       );
     }
+  }
+
+  Color _secondaryText() {
+    return FluentTheme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+  }
+
+  Color _protocolChipColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'vless':
+        return AppTheme.primary;
+      case 'vmess':
+        return const Color(0xFF3B82F6);
+      case 'trojan':
+        return const Color(0xFFF59E0B);
+      case 'shadowsocks':
+        return const Color(0xFF14B8A6);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildProtocolChip(V2RayConfig config) {
+    final color = _protocolChipColor(config.configType);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        config.protocolDisplay,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
   }
 
   IconData _getProtocolIcon(String type) {
@@ -791,5 +894,35 @@ class _ServersScreenState extends State<ServersScreen> {
         );
       }
     }
+  }
+}
+
+/// Soft fade + slide entrance for server cards, played once per card.
+class _EntranceAnimation extends StatelessWidget {
+  const _EntranceAnimation({
+    required this.index,
+    required this.child,
+  });
+
+  final int index;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 250 + (index % 3) * 50),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 14 * (1.0 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
   }
 }
