@@ -351,7 +351,7 @@ class _ServersScreenState extends State<ServersScreen> {
               ),
               Expanded(
                 child: _isLoading
-                    ? const Center(child: ProgressRing())
+                    ? _buildLoadingSkeleton()
                     : _filteredConfigs.isEmpty
                         ? _buildEmptyState()
                         : ListView(
@@ -513,6 +513,44 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Skeleton placeholders matching the real 80px server cards.
+  Widget _buildLoadingSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight + 96),
+      physics: const NeverScrollableScrollPhysics(),
+      children: List.generate(
+        4,
+        (_) => Container(
+          height: 80,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: AppTheme.neoCardDecoration(
+            borderRadius: 24,
+            brightness: FluentTheme.of(context).brightness,
+          ),
+          child: const Row(
+            children: [
+              ShimmerBox(width: 48, height: 48, circle: true),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(width: 140, height: 16, borderRadius: 8),
+                    SizedBox(height: 8),
+                    ShimmerBox(width: 100, height: 12, borderRadius: 6),
+                  ],
+                ),
+              ),
+              ShimmerBox(width: 56, height: 28, borderRadius: 16),
+            ],
+          ),
+        ),
       ),
     );
   }

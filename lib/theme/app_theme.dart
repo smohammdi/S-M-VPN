@@ -134,3 +134,81 @@ class AppTheme {
     }
   }
 }
+
+/// Rounded shimmer placeholder used for skeleton loading states.
+/// Theme-aware: light grey sweep in light mode, slate sweep in dark mode.
+/// The animation repeats every 1300ms with an easeInOut curve.
+class ShimmerBox extends StatefulWidget {
+  const ShimmerBox({
+    super.key,
+    this.width,
+    this.height,
+    this.borderRadius = 12,
+    this.circle = false,
+  });
+
+  final double? width;
+  final double? height;
+  final double borderRadius;
+  final bool circle;
+
+  @override
+  State<ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<ShimmerBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1300),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark =
+        FluentTheme.of(context).brightness == Brightness.dark;
+    final Color base =
+        isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    final Color highlight =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF8FAFC);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final double v = _controller.value;
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            shape: widget.circle ? BoxShape.circle : BoxShape.rectangle,
+            borderRadius: widget.circle
+                ? null
+                : BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [base, highlight, base],
+              stops: [
+                (v - 0.35).clamp(0.0, 1.0),
+                v.clamp(0.0, 1.0),
+                (v + 0.35).clamp(0.0, 1.0),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

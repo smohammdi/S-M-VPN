@@ -464,40 +464,41 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 color: const Color(0xFF6366F1).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(32),
               ),
               child: const Icon(
                 m.Symbols.cloud_off_rounded,
                 color: Color(0xFF6366F1),
-                size: 28,
+                size: 48,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Text(
               'No server selected',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: theme.typography.bodyStrong?.color,
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 8),
             Text(
               'Add a server or subscription first, then connect in one tap.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 15,
                 color: theme.typography.body?.color,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 24),
             SizedBox(
-              height: 44,
+              width: double.infinity,
+              height: 54,
               child: FilledButton(
                 onPressed: _handleConnectionToggle,
                 style: ButtonStyle(

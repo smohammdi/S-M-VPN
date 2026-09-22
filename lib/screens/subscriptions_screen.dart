@@ -98,7 +98,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         ),
       ),
       content: _isLoading
-          ? const Center(child: ProgressRing())
+          ? _buildLoadingSkeleton()
           : Directionality(
               textDirection: Directionality.of(context),
               child: ListView(
@@ -459,6 +459,68 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Skeleton placeholders matching the rich subscription cards.
+  Widget _buildLoadingSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: ShimmerBox(width: 180, height: 32, borderRadius: 10),
+        ),
+        ...List.generate(
+          3,
+          (_) => Container(
+            margin: AppTheme.cardMargin,
+            padding: const EdgeInsets.all(18),
+            decoration: AppTheme.neoCardDecoration(
+              borderRadius: 24,
+              brightness: FluentTheme.of(context).brightness,
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ShimmerBox(width: 52, height: 52, borderRadius: 16),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerBox(width: 150, height: 16, borderRadius: 8),
+                          SizedBox(height: 8),
+                          ShimmerBox(width: 110, height: 12, borderRadius: 6),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    ShimmerBox(width: 76, height: 30, borderRadius: 999),
+                  ],
+                ),
+                SizedBox(height: 14),
+                ShimmerBox(width: double.infinity, height: 40, borderRadius: 14),
+                SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ShimmerBox(height: 44, borderRadius: 12),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: ShimmerBox(height: 44, borderRadius: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
