@@ -1,7 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart' as m;
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
@@ -24,9 +23,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _darkMode = true;
 
   static const Color _danger = Color(0xFFEF4444);
-
-  late final Future<PackageInfo> _packageInfoFuture =
-      PackageInfo.fromPlatform();
 
   @override
   void initState() {
@@ -165,16 +161,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               m.Symbols.info_rounded,
               [
                 _buildInfoTile(S.of(context, 'set_appname'), 'S-M'),
-                _buildInfoTile(
-                  S.of(context, 'set_version'),
-                  '',
-                  valueWidget: _buildVersionText((info) => info.version),
-                ),
-                _buildInfoTile(
-                  S.of(context, 'set_build'),
-                  '',
-                  valueWidget: _buildVersionText((info) => info.buildNumber),
-                ),
+                _buildInfoTile(S.of(context, 'set_version'), '1.0.0'),
+                _buildInfoTile(S.of(context, 'set_build'), '1'),
                 _buildNavigationTile(
                   S.of(context, 'set_privacy'),
                   S.of(context, 'set_privacy_desc'),
@@ -591,7 +579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildInfoTile(String label, String value, {Widget? valueWidget}) {
+  Widget _buildInfoTile(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -601,32 +589,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             label,
             style: TextStyle(fontSize: 14, color: _secondaryText(context)),
           ),
-          valueWidget ??
-              Text(
-                value,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildVersionText(String Function(PackageInfo info) pick) {
-    return FutureBuilder<PackageInfo>(
-      future: _packageInfoFuture,
-      builder: (context, snapshot) {
-        final info = snapshot.data;
-        if (info == null) {
-          return const Text(
-            '…',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          );
-        }
-        return Text(
-          pick(info),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        );
-      },
     );
   }
 
