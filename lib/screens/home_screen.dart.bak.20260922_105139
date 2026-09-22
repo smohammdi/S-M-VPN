@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 
 import 'package:sm_vpn/models/v2ray_config.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
-import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:sm_vpn/l10n/app_strings.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,9 +20,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isBusy = false;
-  int? _activePing;
-  bool _isPinging = false;
-  String? _pingedConfigId;
 
   Future<void> _handleConnectionToggle() async {
     if (_isBusy) return;
@@ -138,10 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             _buildServerCard(context, activeConfig)
                           else
                             _buildNoServerCard(context),
-                          if (activeConfig != null) ...[
-                            const SizedBox(height: 8),
-                            _buildPingRow(context, activeConfig),
-                          ],
                           const SizedBox(height: 18),
                           _buildStatsSection(
                             context,
@@ -432,104 +424,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _testPing(V2RayConfig config) async {
-    if (_isPinging) return;
-    setState(() {
-      _isPinging = true;
-    });
-    try {
-      final service = context.read<V2RayService>();
-      final ping = await service.getServerDelay(config);
-      if (!mounted) return;
-      setState(() {
-        _isPinging = false;
-        _activePing = ping;
-        _pingedConfigId = config.id;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isPinging = false;
-        _activePing = -1;
-        _pingedConfigId = config.id;
-      });
-    }
-  }
-
-  Widget _buildPingRow(BuildContext context, V2RayConfig config) {
-    final theme = FluentTheme.of(context);
-    final brightness = theme.brightness;
-
-    final Color background = brightness == Brightness.dark
-        ? const Color(0xFF111827).withValues(alpha: 0.72)
-        : const Color(0xFFFFFFFF).withValues(alpha: 0.72);
-
-    final Color border = brightness == Brightness.dark
-        ? const Color(0xFFFFFFFF).withValues(alpha: 0.08)
-        : const Color(0xFF0F172A).withValues(alpha: 0.06);
-
-    final int? ping =
-        (_pingedConfigId == config.id) ? _activePing : null;
-
-    final String text;
-    final Color color;
-    if (ping == null) {
-      text = 'Tap to test';
-      color = AppTheme.getPingColor(null);
-    } else if (ping < 0) {
-      text = 'Timeout';
-      color = AppTheme.disconnectedRed;
-    } else {
-      text = '${ping}ms';
-      color = AppTheme.getPingColor(ping);
-    }
-
-    return GestureDetector(
-      onTap: () => _testPing(config),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: border),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              m.Symbols.signal_cellular_alt_rounded,
-              size: 16,
-              color: color,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ),
-            if (_isPinging)
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: ProgressRing(),
-              )
-            else
-              Icon(
-                m.Symbols.refresh_rounded,
-                size: 16,
-                color: theme.typography.caption?.color,
-              ),
           ],
         ),
       ),
