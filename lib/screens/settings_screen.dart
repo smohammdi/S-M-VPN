@@ -25,12 +25,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   static const Color _danger = Color(0xFFEF4444);
 
-  late final Future<PackageInfo> _packageInfoFuture =
-      PackageInfo.fromPlatform();
+  late Future<PackageInfo> _packageInfoFuture;
 
   @override
   void initState() {
     super.initState();
+    _packageInfoFuture = PackageInfo.fromPlatform();
     _loadSettings();
   }
 
@@ -64,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       content: Directionality(
         textDirection: Directionality.of(context),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 130),
           children: [
             _buildSection(
               S.of(context, 'set_general'),
@@ -615,6 +615,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return FutureBuilder<PackageInfo>(
       future: _packageInfoFuture,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text(
+            '…',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          );
+        }
+        if (snapshot.hasError) {
+          return Text(
+            S.of(context, 'version_unknown'),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          );
+        }
         final info = snapshot.data;
         if (info == null) {
           return const Text(

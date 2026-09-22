@@ -6,7 +6,6 @@ import 'package:sm_vpn/theme/app_theme.dart';
 import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:sm_vpn/screens/home_screen.dart';
 import 'package:sm_vpn/screens/servers_screen.dart';
-import 'package:sm_vpn/screens/subscriptions_screen.dart';
 import 'package:sm_vpn/screens/settings_screen.dart';
 import 'package:sm_vpn/screens/onboarding_screen.dart';
 import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
@@ -77,7 +76,6 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = const [
     HomeScreen(),
     ServersScreen(),
-    SubscriptionsScreen(),
     SettingsScreen(),
   ];
 
@@ -92,11 +90,6 @@ class _MainNavigationState extends State<MainNavigation> {
         icon: m.Symbols.dns_rounded,
         activeIcon: m.Symbols.dns_rounded,
         label: S.of(context, 'nav_servers'),
-      ),
-      FloatingNavItem(
-        icon: m.Symbols.subscriptions_rounded,
-        activeIcon: m.Symbols.subscriptions_rounded,
-        label: S.of(context, 'nav_subscriptions'),
       ),
       FloatingNavItem(
         icon: m.Symbols.settings_rounded,
@@ -145,25 +138,9 @@ class _MainNavigationState extends State<MainNavigation> {
     return NavigationView(
       appBar: NavigationAppBar(
         automaticallyImplyLeading: false,
-        title: Row(
+        title: const Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.primaryLight],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(FluentIcons.shield_solid, color: Colors.white, size: 18),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
+            Text(
               'S-M',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),

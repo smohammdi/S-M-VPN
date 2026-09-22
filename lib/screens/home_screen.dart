@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 620),
@@ -475,14 +475,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final String text;
     final Color color;
-    if (ping == null) {
-      text = 'Tap to test';
+    if (_isPinging) {
+      text = S.of(context, 'ping_testing');
+      color = AppTheme.primary;
+    } else if (ping == null) {
+      text = S.of(context, 'ping_tap_to_test');
       color = AppTheme.getPingColor(null);
     } else if (ping < 0) {
-      text = 'Timeout';
+      text = S.of(context, 'ping_timeout');
       color = AppTheme.disconnectedRed;
     } else {
-      text = '${ping}ms';
+      text =
+          '${S.of(context, 'ping_label')}: $ping ${S.of(context, 'ping_ms')}';
       color = AppTheme.getPingColor(ping);
     }
 

@@ -251,11 +251,6 @@ List<FloatingNavItem> defaultFloatingNavItems() {
       label: 'Servers',
     ),
     FloatingNavItem(
-      icon: m.Symbols.subscriptions_rounded,
-      activeIcon: m.Symbols.subscriptions_rounded,
-      label: 'Subscriptions',
-    ),
-    FloatingNavItem(
       icon: m.Symbols.settings_rounded,
       activeIcon: m.Symbols.settings_rounded,
       label: 'Settings',

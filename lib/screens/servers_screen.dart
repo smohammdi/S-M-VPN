@@ -8,6 +8,7 @@ import 'package:sm_vpn/screens/manual_config_screen.dart';
 import 'package:sm_vpn/screens/qr_scanner_screen.dart';
 import 'package:sm_vpn/l10n/app_strings.dart';
 import 'package:sm_vpn/widgets/floating_bottom_nav.dart';
+import 'package:sm_vpn/widgets/subscriptions_tab.dart';
 import 'package:flutter/services.dart';
 
 class ServersScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _ServersScreenState extends State<ServersScreen> {
   bool _isSorting = false;
   bool _showAddSheet = false;
   String _searchQuery = '';
+  int _selectedTab = 0; // 0 = Servers, 1 = Subscriptions
   final Map<String, int?> _pingResults = {};
   String? _selectedConfigId;
   final Set<String> _animatedCardIds = {};
@@ -294,8 +296,14 @@ class _ServersScreenState extends State<ServersScreen> {
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: PageHeader(
-        title: Text(S.of(context, 'servers_title'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-        commandBar: DropDownButton(
+        title: Text(
+          _selectedTab == 0
+              ? S.of(context, 'servers_title')
+              : S.of(context, 'subs_title'),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        commandBar: _selectedTab == 0
+            ? DropDownButton(
           title: Text(S.of(context, 'menu_title')),
           leading: const Icon(m.Icons.more_vert, size: 16),
           items: [
@@ -326,16 +334,19 @@ class _ServersScreenState extends State<ServersScreen> {
               },
             ),
           ],
-        ),
+                ),
+            : null,
       ),
       content: Stack(
         children: [
           Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextBox(
-                  placeholder: S.of(context, 'servers_search_hint'),
+              _buildTabToggle(),
+              if (_selectedTab == 0) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextBox(
+                    placeholder: S.of(context, 'servers_search_hint'),
                   prefix: const Padding(
                     padding: EdgeInsets.only(left: 12),
                     child: Icon(m.Icons.search, size: 16),
@@ -372,8 +383,12 @@ class _ServersScreenState extends State<ServersScreen> {
                             ],
                           ),
               ),
+              ] else ...[
+                const Expanded(child: SubscriptionsTab()),
+              ],
             ],
           ),
+          if (_selectedTab == 0)
           Positioned(
             right: 16,
             bottom: AppTheme.bottomNavHeight + 16,
@@ -401,6 +416,61 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
           ),
           if (_showAddSheet) _buildAddSheet(),
+        ],
+      ),
+    );
+  }
+
+  void _selectTab(int index) {
+    if (_selectedTab == index) return;
+    HapticFeedback.selectionClick().ignore();
+    setState(() => _selectedTab = index);
+  }
+
+  Widget _buildTabToggle() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: ToggleButton(
+              checked: _selectedTab == 0,
+              onChanged: (_) => _selectTab(0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(m.Icons.dns_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    S.of(context, 'nav_servers'),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ToggleButton(
+              checked: _selectedTab == 1,
+              onChanged: (_) => _selectTab(1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(m.Icons.subscriptions_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    S.of(context, 'nav_subscriptions'),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -555,7 +625,7 @@ class _ServersScreenState extends State<ServersScreen> {
 
   Widget _buildEmptyState() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 130),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,

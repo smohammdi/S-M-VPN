@@ -134,7 +134,7 @@ class _ManualConfigScreenState extends State<ManualConfigScreen> {
             foregroundColor: Colors.white,
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
