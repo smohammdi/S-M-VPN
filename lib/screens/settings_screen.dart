@@ -1,4 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart' as m;
 import 'package:provider/provider.dart';
 import 'package:sm_vpn/services/v2ray_service.dart';
 import 'package:sm_vpn/theme/app_theme.dart';
@@ -17,6 +19,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoConnect = false;
   bool _killSwitch = false;
   bool _darkMode = true;
+
+  static const Color _danger = Color(0xFFEF4444);
 
   @override
   void initState() {
@@ -38,118 +42,140 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool(key, value);
   }
 
+  Color _secondaryText(BuildContext context) {
+    return FluentTheme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
       header: const PageHeader(
         title: Text('Settings', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
       ),
-      content: ListView(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
-        children: [
-          _buildSection(
-            'General',
-            [
-              _buildSettingTile(
-                'Auto Connect',
-                'Automatically connect on app start',
-                FluentIcons.play_solid,
-                _autoConnect,
-                (value) {
-                  setState(() {
-                    _autoConnect = value;
-                  });
-                  _saveSetting('auto_connect', value);
-                },
-              ),
-              _buildSettingTile(
-                'Kill Switch',
-                'Block internet if VPN disconnects',
-                FluentIcons.shield_solid,
-                _killSwitch,
-                (value) {
-                  setState(() {
-                    _killSwitch = value;
-                  });
-                  _saveSetting('kill_switch', value);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildSection(
-            'Network',
-            [
-              _buildNavigationTile(
-                'Per-App Proxy',
-                'Choose which apps use VPN',
-                FluentIcons.permissions,
-                () {
-                  Navigator.push(
-                    context,
-                    FluentPageRoute(builder: (context) => const PerAppProxyScreen()),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildSection(
-            'Appearance',
-            [
-              _buildSettingTile(
-                'Dark Mode',
-                'Use dark theme',
-                FluentIcons.clear_night,
-                _darkMode,
-                (value) {
-                  setState(() {
-                    _darkMode = value;
-                  });
-                  _saveSetting('dark_mode', value);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildSection(
-            'Data',
-            [
-              _buildActionTile(
-                'Clear Server Cache',
-                'Clear all cached server data',
-                FluentIcons.clear,
-                () => _clearCache(),
-              ),
-              _buildActionTile(
-                'Clear All Data',
-                'Reset all settings and servers',
-                FluentIcons.delete,
-                () => _clearAllData(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildSection(
-            'About',
-            [
-              _buildInfoTile('App Name', 'S-M'),
-              _buildInfoTile('Version', '1.0.0'),
-              _buildInfoTile('Build', '1'),
-              _buildNavigationTile(
-                'Privacy Policy',
-                'View our privacy policy',
-                FluentIcons.document,
-                () => _launchUrl('https://smohammdi.github.io/S-M-Privacy-Policy/'),
-              ),
-            ],
-          ),
-        ],
+      content: Directionality(
+        textDirection: Directionality.of(context),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
+          children: [
+            _buildSection(
+              'General',
+              m.Symbols.settings_rounded,
+              [
+                _buildSettingTile(
+                  'Auto Connect',
+                  'Automatically connect on app start',
+                  m.Symbols.bolt_rounded,
+                  _autoConnect,
+                  (value) {
+                    HapticFeedback.selectionClick().ignore();
+                    setState(() {
+                      _autoConnect = value;
+                    });
+                    _saveSetting('auto_connect', value);
+                  },
+                ),
+                _buildSettingTile(
+                  'Kill Switch',
+                  'Block internet if VPN disconnects',
+                  m.Symbols.shield_rounded,
+                  _killSwitch,
+                  (value) {
+                    HapticFeedback.selectionClick().ignore();
+                    setState(() {
+                      _killSwitch = value;
+                    });
+                    _saveSetting('kill_switch', value);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            _buildSection(
+              'Network',
+              m.Symbols.wifi_rounded,
+              [
+                _buildNavigationTile(
+                  'Per-App Proxy',
+                  'Choose which apps use VPN',
+                  m.Symbols.tune_rounded,
+                  () {
+                    HapticFeedback.lightImpact().ignore();
+                    Navigator.push(
+                      context,
+                      FluentPageRoute(builder: (context) => const PerAppProxyScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            _buildSection(
+              'Appearance',
+              m.Symbols.palette_rounded,
+              [
+                _buildSettingTile(
+                  'Dark Mode',
+                  'Use dark theme',
+                  m.Symbols.dark_mode_rounded,
+                  _darkMode,
+                  (value) {
+                    HapticFeedback.selectionClick().ignore();
+                    setState(() {
+                      _darkMode = value;
+                    });
+                    _saveSetting('dark_mode', value);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            _buildSection(
+              'Data',
+              m.Symbols.storage_rounded,
+              [
+                _buildActionTile(
+                  'Clear Server Cache',
+                  'Clear all cached server data',
+                  m.Symbols.cached_rounded,
+                  () => _clearCache(),
+                ),
+                _buildActionTile(
+                  'Clear All Data',
+                  'Reset all settings and servers',
+                  m.Symbols.delete_forever_rounded,
+                  () => _clearAllData(),
+                  danger: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            _buildSection(
+              'About',
+              m.Symbols.info_rounded,
+              [
+                _buildInfoTile('App Name', 'S-M'),
+                _buildInfoTile('Version', '1.0.0'),
+                _buildInfoTile('Build', '1'),
+                _buildNavigationTile(
+                  'Privacy Policy',
+                  'View our privacy policy',
+                  m.Symbols.description_rounded,
+                  () {
+                    HapticFeedback.lightImpact().ignore();
+                    _launchUrl('https://smohammdi.github.io/S-M-Privacy-Policy/');
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(String title, IconData icon, List<Widget> children) {
     return Container(
       margin: AppTheme.cardMargin,
       padding: AppTheme.cardPadding,
@@ -160,9 +186,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Icon(icon, color: AppTheme.primary, size: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           ...children,
@@ -182,18 +228,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: AppTheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
-            child: Icon(icon, color: AppTheme.primary, size: 20),
+            child: Icon(icon, color: AppTheme.primary, size: 22),
           ),
         ),
-        title: Text(title),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: _secondaryText(context)),
+        ),
         trailing: ToggleSwitch(
           checked: value,
           onChanged: onChanged,
@@ -206,26 +258,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String title,
     String subtitle,
     IconData icon,
-    VoidCallback onPressed,
-  ) {
+    VoidCallback onPressed, {
+    bool danger = false,
+  }) {
+    final Color tint = danger ? _danger : AppTheme.primary;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            color: tint.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
-            child: Icon(icon, color: AppTheme.primary, size: 20),
+            child: Icon(icon, color: tint, size: 22),
           ),
         ),
-        title: Text(title),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-        trailing: Button(
-          onPressed: onPressed,
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: _secondaryText(context)),
+        ),
+        trailing: OutlinedButton(
+          onPressed: () {
+            HapticFeedback.lightImpact().ignore();
+            onPressed();
+          },
+          style: ButtonStyle(
+            foregroundColor: WidgetStateProperty.all(tint),
+            padding: WidgetStateProperty.all(
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+            shape: WidgetStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
           child: const Text('Execute'),
         ),
       ),
@@ -242,19 +317,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: AppTheme.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
-            child: Icon(icon, color: AppTheme.primary, size: 20),
+            child: Icon(icon, color: AppTheme.primary, size: 22),
           ),
         ),
-        title: Text(title),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(FluentIcons.chevron_right),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: _secondaryText(context)),
+        ),
+        trailing: Icon(
+          m.Symbols.chevron_right_rounded,
+          size: 22,
+          color: _secondaryText(context),
+        ),
         onPressed: onPressed,
       ),
     );
@@ -266,10 +351,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Text(
+            label,
+            style: TextStyle(fontSize: 14, color: _secondaryText(context)),
+          ),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -380,4 +468,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
