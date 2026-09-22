@@ -96,7 +96,7 @@ public class V2rayVPNService extends VpnService implements V2rayServicesListener
         }
         Builder builder = new Builder();
         builder.setSession(v2rayConfig.REMARK);
-        builder.setMtu(1400);
+        builder.setMtu(1500);
         builder.addAddress("26.26.26.1", 30);
 
         if (v2rayConfig.BYPASS_SUBNETS == null || v2rayConfig.BYPASS_SUBNETS.isEmpty()) {
@@ -174,7 +174,7 @@ public class V2rayVPNService extends VpnService implements V2rayServicesListener
                 "--netif-ipaddr", "26.26.26.2",
                 "--netif-netmask", "255.255.255.252",
                 "--socks-server-addr", "127.0.0.1:" + v2rayConfig.LOCAL_SOCKS5_PORT,
-                "--tunmtu", "1400",
+                "--tunmtu", "1500",
                 "--sock-path", "sock_path",
                 "--enable-udprelay",
                 "--loglevel", "error"));
