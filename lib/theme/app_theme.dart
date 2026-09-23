@@ -246,7 +246,7 @@ class AppTheme {
 
   /// Bottom padding used by scrollable screens so content is never
   /// hidden behind the floating navigation bar.
-  static const double bottomNavHeight = 96.0;
+  static const double bottomNavHeight = 110.0;
 
   static Color getPingColor(int? ping) {
     if (ping == null || ping < 0) return Colors.grey;

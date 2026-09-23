@@ -136,17 +136,6 @@ class _MainNavigationState extends State<MainNavigation> {
       return OnboardingScreen(onFinished: _finishOnboarding);
     }
     return NavigationView(
-      appBar: NavigationAppBar(
-        automaticallyImplyLeading: false,
-        title: const Row(
-          children: [
-            Text(
-              'S-M',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
       content: Stack(
         children: [
           _TabTransitionStack(

@@ -21,7 +21,6 @@ class ServersScreen extends StatefulWidget {
 class _ServersScreenState extends State<ServersScreen> {
   List<V2RayConfig> _configs = [];
   bool _isLoading = true;
-  bool _isSorting = false;
   bool _showAddSheet = false;
   String _searchQuery = '';
   int _selectedTab = 0; // 0 = Servers, 1 = Subscriptions
@@ -60,57 +59,6 @@ class _ServersScreenState extends State<ServersScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  Future<void> _pingAllServers() async {
-    setState(() {
-      _isSorting = true;
-      _pingResults.clear();
-    });
-
-    final service = Provider.of<V2RayService>(context, listen: false);
-
-    for (int i = 0; i < _configs.length; i++) {
-      final config = _configs[i];
-      try {
-        final ping = await service.getServerDelay(config);
-        if (mounted) {
-          setState(() {
-            _pingResults[config.id] = ping ?? -1;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _pingResults[config.id] = -1;
-          });
-        }
-      }
-
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    if (mounted) {
-      _sortByPing();
-      setState(() {
-        _isSorting = false;
-      });
-    }
-  }
-
-  void _sortByPing() {
-    setState(() {
-      _configs.sort((a, b) {
-        final pingA = _pingResults[a.id] ?? 999999;
-        final pingB = _pingResults[b.id] ?? 999999;
-
-        if (pingA == -1 && pingB == -1) return 0;
-        if (pingA == -1) return 1;
-        if (pingB == -1) return -1;
-
-        return pingA.compareTo(pingB);
-      });
-    });
   }
 
   List<V2RayConfig> get _filteredConfigs {
@@ -295,15 +243,6 @@ class _ServersScreenState extends State<ServersScreen> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
-      header: PageHeader(
-        title: Text(
-          _selectedTab == 0
-              ? S.of(context, 'servers_title')
-              : S.of(context, 'subs_title'),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        commandBar: _serversMenu(),
-      ),
       content: Stack(
         children: [
           Column(
@@ -334,7 +273,6 @@ class _ServersScreenState extends State<ServersScreen> {
                             padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight + 96),
                             children: [
                               if (_manualConfigs.isNotEmpty) ...[
-                                _buildSectionHeader(m.Icons.edit_note, S.of(context, 'servers_manual', {'n': '${_manualConfigs.length}'})),
                                 ..._manualConfigs.asMap().entries.map(
                                       (e) => _buildServerCard(e.value, e.key),
                                     ),
@@ -388,41 +326,6 @@ class _ServersScreenState extends State<ServersScreen> {
     );
   }
 
-  Widget? _serversMenu() {
-    if (_selectedTab != 0) return null;
-    return DropDownButton(
-          title: Text(S.of(context, 'menu_title')),
-          leading: const Icon(m.Icons.more_vert, size: 16),
-          items: [
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.refresh, size: 16),
-              text: Text(S.of(context, 'menu_refresh')),
-              onPressed: () {
-                HapticFeedback.lightImpact().ignore();
-                _loadConfigs();
-              },
-            ),
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.speed, size: 16),
-              text: Text(_isSorting ? S.of(context, 'menu_pinging') : S.of(context, 'menu_ping_all')),
-              onPressed: _isSorting
-                  ? null
-                  : () {
-                      HapticFeedback.lightImpact().ignore();
-                      _pingAllServers();
-                    },
-            ),
-            const MenuFlyoutSeparator(),
-            MenuFlyoutItem(
-              leading: const Icon(m.Icons.content_paste, size: 16),
-              text: Text(S.of(context, 'menu_paste')),
-              onPressed: () {
-                _importFromClipboard();
-              },
-            ),
-          ],
-        );
-  }
 
   void _selectTab(int index) {
     if (_selectedTab == index) return;
@@ -628,7 +531,7 @@ class _ServersScreenState extends State<ServersScreen> {
 
   Widget _buildEmptyState() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 130),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 150),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,

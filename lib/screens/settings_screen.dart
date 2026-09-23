@@ -64,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       content: Directionality(
         textDirection: Directionality.of(context),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(0, 8, 0, 130),
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 150),
           children: [
             _buildSection(
               S.of(context, 'set_general'),

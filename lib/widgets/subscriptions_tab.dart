@@ -119,7 +119,7 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
               : Directionality(
                   textDirection: Directionality.of(context),
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 130),
+                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 150),
                     children: [
                       if (_subscriptions.isNotEmpty) ...[
                         _buildListSectionHeader(
@@ -370,7 +370,7 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
   /// Skeleton placeholders matching the rich subscription cards.
   Widget _buildLoadingSkeleton() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(0, 8, 0, AppTheme.bottomNavHeight),
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, 150),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         const Padding(

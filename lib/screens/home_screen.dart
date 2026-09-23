@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 150),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 620),
@@ -132,12 +132,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             connected: connected,
                             status: status,
+                            activeConfig: activeConfig,
                           ),
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 20),
                           if (activeConfig != null)
                             _buildServerCard(context, activeConfig)
                           else
-                            _buildNoServerCard(context),
+                            Text(
+                              S.of(context, 'home_no_server_guide'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 13),
+                            ),
                           if (activeConfig != null) ...[
                             const SizedBox(height: 8),
                             _buildPingRow(context, activeConfig),
@@ -187,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'S-M VPN',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: theme.typography.title?.color,
                   letterSpacing: -0.5,
@@ -246,6 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context, {
     required bool connected,
     required V2RayStatus? status,
+    required V2RayConfig? activeConfig,
   }) {
     final theme = FluentTheme.of(context);
     final direction = Directionality.of(context);
@@ -332,8 +338,62 @@ class _HomeScreenState extends State<HomeScreen> {
               color: theme.typography.caption?.color,
             ),
           ),
+          const SizedBox(height: 12),
+          _buildSelectedStrip(context, activeConfig),
         ],
       ),
+    );
+  }
+
+  Widget _buildSelectedStrip(BuildContext context, V2RayConfig? config) {
+    final theme = FluentTheme.of(context);
+    final brightness = theme.brightness;
+
+    final Color background = brightness == Brightness.dark
+        ? const Color(0xFF111827).withValues(alpha: 0.72)
+        : const Color(0xFFFFFFFF).withValues(alpha: 0.72);
+
+    final Color border = brightness == Brightness.dark
+        ? const Color(0xFFFFFFFF).withValues(alpha: 0.08)
+        : const Color(0xFF0F172A).withValues(alpha: 0.06);
+
+    final Color secondaryText = brightness == Brightness.dark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: border),
+      ),
+      child: config == null
+          ? Text(
+              S.of(context, 'home_no_server'),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: secondaryText),
+            )
+          : Row(
+              children: [
+                Icon(
+                  m.Symbols.dns_rounded,
+                  size: 16,
+                  color: AppTheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${config.remark.isEmpty ? S.of(context, 'home_fallback_server') : config.remark} • ${config.address}:${config.port}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -439,23 +499,22 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isPinging = true;
     });
+    int? result;
     try {
       final service = context.read<V2RayService>();
-      final ping = await service.getServerDelay(config);
-      if (!mounted) return;
-      setState(() {
-        _isPinging = false;
-        _activePing = ping;
-        _pingedConfigId = config.id;
-      });
+      result = await service.getServerDelay(config).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => -1,
+      );
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isPinging = false;
-        _activePing = -1;
-        _pingedConfigId = config.id;
-      });
+      result = -1;
     }
+    if (!mounted) return;
+    setState(() {
+      _isPinging = false;
+      _activePing = result;
+      _pingedConfigId = config.id;
+    });
   }
 
   Widget _buildPingRow(BuildContext context, V2RayConfig config) {
@@ -536,80 +595,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNoServerCard(BuildContext context) {
-    final theme = FluentTheme.of(context);
-    final direction = Directionality.of(context);
-
-    return _GlassCard(
-      child: Directionality(
-        textDirection: direction,
-        child: Column(
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(32),
-              ),
-              child: const Icon(
-                m.Symbols.cloud_off_rounded,
-                color: Color(0xFF6366F1),
-                size: 48,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              S.of(context, 'home_no_server'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: theme.typography.bodyStrong?.color,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              S.of(context, 'home_no_server_guide'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: theme.typography.body?.color,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: FilledButton(
-                onPressed: _handleConnectionToggle,
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(
-                    const Color(0xFF6366F1),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(m.Symbols.dns_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      S.of(context, 'home_choose_server'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   Widget _buildStatsSection(
     BuildContext context, {
     required V2RayStatus? status,
@@ -704,7 +689,7 @@ class _GlassCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: background,
             borderRadius: BorderRadius.circular(24),
@@ -741,7 +726,7 @@ class _LiveStatCard extends StatelessWidget {
 
     return _GlassCard(
       child: SizedBox(
-        height: 82,
+        height: 70,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -875,8 +860,8 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
         child: ScaleTransition(
           scale: _pressScale,
           child: SizedBox(
-            width: 208,
-            height: 208,
+            width: 160,
+            height: 160,
             child: AnimatedBuilder(
               animation:
                   Listenable.merge([_pulseController, _morphController]),
@@ -890,8 +875,8 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: 208,
-                        height: 208,
+                        width: 160,
+                        height: 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: [
@@ -899,8 +884,8 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
                               color: primary.withValues(
                                 alpha: widget.connected ? 0.16 : 0.30,
                               ),
-                              blurRadius: widget.connected ? 34 : 48,
-                              spreadRadius: widget.connected ? 6 : 12,
+                              blurRadius: widget.connected ? 26 : 37,
+                              spreadRadius: widget.connected ? 5 : 9,
                             ),
                           ],
                         ),
@@ -916,7 +901,7 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
                         maxAlpha: widget.connected ? 0.10 : 0.20,
                       ),
                       CustomPaint(
-                        size: const Size(196, 196),
+                        size: const Size(150, 150),
                         painter: _BlobHaloPainter(
                           progress: morph,
                           color: secondary.withValues(alpha: 0.35),
@@ -924,7 +909,7 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
                       ),
                       _WavyBlob(
                         progress: morph,
-                        size: 168,
+                        size: 130,
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -947,14 +932,14 @@ class _ConnectionBlobState extends State<_ConnectionBlob>
                           child: widget.connecting
                               ? const SizedBox(
                                   key: ValueKey<String>('connecting'),
-                                  width: 44,
-                                  height: 44,
+                                  width: 34,
+                                  height: 34,
                                   child: ProgressRing(),
                                 )
                               : Icon(
                                   centerIcon,
                                   key: ValueKey<IconData>(centerIcon),
-                                  size: 64,
+                                  size: 48,
                                   color: const Color(0xFFFFFFFF),
                                 ),
                         ),
@@ -985,7 +970,7 @@ class _PulseRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double size = 168 + (progress * 44);
+    final double size = 130 + (progress * 34);
     final double alpha = maxAlpha * (1.0 - progress);
     return Container(
       width: size,
