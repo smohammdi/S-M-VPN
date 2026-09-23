@@ -24,6 +24,32 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _activePing;
   bool _isPinging = false;
   String? _pingedConfigId;
+  V2RayConfig? _selectedConfig;
+  bool _loadingSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshSelectedConfig();
+  }
+
+  Future<void> _refreshSelectedConfig() async {
+    if (_loadingSelected) return;
+    _loadingSelected = true;
+    try {
+      final service = context.read<V2RayService>();
+      final selected = await service.loadSelectedConfig();
+      if (!mounted) return;
+      if (selected?.id != _selectedConfig?.id) {
+        setState(() {
+          _selectedConfig = selected;
+        });
+      }
+    } catch (_) {
+    } finally {
+      _loadingSelected = false;
+    }
+  }
 
   Future<void> _handleConnectionToggle() async {
     if (_isBusy) return;
@@ -111,6 +137,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final bool connected = service.isConnected;
         final V2RayConfig? activeConfig = service.activeConfig;
         final V2RayStatus? status = service.currentStatus;
+        if (activeConfig == null && !_loadingSelected) {
+          _loadingSelected = true;
+          _refreshSelectedConfig();
+        }
+        final V2RayConfig? displayConfig = activeConfig ?? _selectedConfig;
 
         return ScaffoldPage(
           padding: EdgeInsets.zero,
@@ -119,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 150),
+                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 150),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 620),
@@ -132,14 +163,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             connected: connected,
                             status: status,
-                            activeConfig: activeConfig,
                           ),
                           const SizedBox(height: 20),
-                          if (activeConfig != null)
-                            _buildServerCard(context, activeConfig)
+                          if (displayConfig != null)
+                            _buildServerCard(context, displayConfig)
                           else
                             Text(
-                              S.of(context, 'home_no_server_guide'),
+                              S.of(context, 'home_no_server'),
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 13),
                             ),
@@ -251,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context, {
     required bool connected,
     required V2RayStatus? status,
-    required V2RayConfig? activeConfig,
   }) {
     final theme = FluentTheme.of(context);
     final direction = Directionality.of(context);
@@ -327,73 +356,19 @@ class _HomeScreenState extends State<HomeScreen> {
             connecting: _isBusy,
             onPressed: _handleConnectionToggle,
           ),
-          const SizedBox(height: 14),
-          Text(
-            connected
-                ? S.of(context, 'home_tap_disconnect')
-                : S.of(context, 'home_one_tap'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: theme.typography.caption?.color,
+          if (connected) ...[
+            const SizedBox(height: 14),
+            Text(
+              S.of(context, 'home_tap_disconnect'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.typography.caption?.color,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          _buildSelectedStrip(context, activeConfig),
+          ],
         ],
       ),
-    );
-  }
-
-  Widget _buildSelectedStrip(BuildContext context, V2RayConfig? config) {
-    final theme = FluentTheme.of(context);
-    final brightness = theme.brightness;
-
-    final Color background = brightness == Brightness.dark
-        ? const Color(0xFF111827).withValues(alpha: 0.72)
-        : const Color(0xFFFFFFFF).withValues(alpha: 0.72);
-
-    final Color border = brightness == Brightness.dark
-        ? const Color(0xFFFFFFFF).withValues(alpha: 0.08)
-        : const Color(0xFF0F172A).withValues(alpha: 0.06);
-
-    final Color secondaryText = brightness == Brightness.dark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: border),
-      ),
-      child: config == null
-          ? Text(
-              S.of(context, 'home_no_server'),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: secondaryText),
-            )
-          : Row(
-              children: [
-                Icon(
-                  m.Symbols.dns_rounded,
-                  size: 16,
-                  color: AppTheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${config.remark.isEmpty ? S.of(context, 'home_fallback_server') : config.remark} • ${config.address}:${config.port}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
     );
   }
 

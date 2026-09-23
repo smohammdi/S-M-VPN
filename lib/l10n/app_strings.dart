@@ -435,7 +435,7 @@ class S {
     'home_connecting': 'در حال اتصال',
     'home_connecting_long': 'در حال اتصال...',
     'home_secure_ok': 'اتصال تو رمزنگاری‌شده و خصوصی است.',
-    'home_tap_connect': 'برای اتصال امن، دکمه زیر را بزن.',
+    'home_tap_connect': 'برای اتصال، دکمه زیر را بزنید',
     'home_tap_disconnect': 'برای قطع، دوباره بزن',
     'home_one_tap': 'فقط یک لمس کافی است',
     'home_active_server': 'سرور فعال',

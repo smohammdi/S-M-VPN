@@ -335,7 +335,7 @@ class _ServersScreenState extends State<ServersScreen> {
 
   Widget _buildTabToggle() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 30, 16, 4),
       child: Row(
         children: [
           Expanded(
@@ -499,7 +499,7 @@ class _ServersScreenState extends State<ServersScreen> {
       children: List.generate(
         4,
         (_) => Container(
-          height: 80,
+          height: 88,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: AppTheme.neoCardDecoration(
@@ -622,7 +622,7 @@ class _ServersScreenState extends State<ServersScreen> {
     final isSelected = _selectedConfigId == config.id;
 
     final Widget card = Container(
-      height: 80,
+      height: 88,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: AppTheme.neoCardDecoration(
@@ -684,13 +684,15 @@ class _ServersScreenState extends State<ServersScreen> {
                     Expanded(
                       child: Text(
                         config.remark,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildProtocolChip(config),
+                    Flexible(
+                      child: _buildProtocolChip(config),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -698,7 +700,7 @@ class _ServersScreenState extends State<ServersScreen> {
                   '${config.address}:${config.port}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14, color: _secondaryText()),
+                  style: TextStyle(fontSize: 12, color: _secondaryText()),
                 ),
               ],
             ),
@@ -735,7 +737,11 @@ class _ServersScreenState extends State<ServersScreen> {
             ),
           if (ping == null)
             IconButton(
-              icon: const Icon(m.Icons.speed, size: 24),
+              icon: Icon(
+                m.Icons.speed,
+                size: 24,
+                color: AppTheme.primary,
+              ),
               onPressed: () {
                 HapticFeedback.lightImpact().ignore();
                 _pingSingleServer(config);
