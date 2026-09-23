@@ -74,43 +74,10 @@ class _SubscriptionsTabState extends State<SubscriptionsTab> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 30, 20, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  S.of(context, 'subs_title'),
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-              FilledButton(
-                onPressed: () {
-                  HapticFeedback.lightImpact().ignore();
-                  _showAddSubscriptionDialog();
-                },
-                style: ButtonStyle(
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  ),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(m.Symbols.add_rounded, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      S.of(context, 'subs_add'),
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          child: Text(
+            S.of(context, 'subs_title'),
+            style: const TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
         Expanded(

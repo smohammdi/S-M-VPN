@@ -473,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_isPinging) return;
     setState(() {
       _isPinging = true;
+      _activePing = null;
     });
     int? result;
     try {
@@ -483,10 +484,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (_) {
       result = -1;
+    } finally {
+      _isPinging = false;
     }
     if (!mounted) return;
     setState(() {
-      _isPinging = false;
       _activePing = result;
       _pingedConfigId = config.id;
     });
