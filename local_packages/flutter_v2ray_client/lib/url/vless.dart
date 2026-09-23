@@ -46,21 +46,6 @@ class VlessURL extends V2RayURL {
     _populateXhttpSettings();
   }
 
-  /// The parsed URI object from the vless URL.
-  late final Uri uri;
-
-  /// Server address extracted from the URI host.
-  @override
-  String get address => uri.host;
-
-  /// Server port parsed from the URI. Falls back to [super.port] if absent.
-  @override
-  int get port => uri.hasPort ? uri.port : super.port;
-
-  /// Human-readable remark decoded from the URI fragment.
-  @override
-  String get remark => Uri.decodeFull(uri.fragment.replaceAll('+', '%20'));
-
   /// Populate xhttp specific settings
   void _populateXhttpSettings() {
     final transport = uri.queryParameters['type'] ?? 'tcp';
@@ -95,6 +80,21 @@ class VlessURL extends V2RayURL {
       streamSetting['xhttpSettings'] = xhttpSettings;
     }
   }
+
+  /// The parsed URI object from the vless URL.
+  late final Uri uri;
+
+  /// Server address extracted from the URI host.
+  @override
+  String get address => uri.host;
+
+  /// Server port parsed from the URI. Falls back to [super.port] if absent.
+  @override
+  int get port => uri.hasPort ? uri.port : super.port;
+
+  /// Human-readable remark decoded from the URI fragment.
+  @override
+  String get remark => Uri.decodeFull(uri.fragment.replaceAll('+', '%20'));
 
   /// Outbound configuration map for the vless protocol used by V2Ray core.
   @override

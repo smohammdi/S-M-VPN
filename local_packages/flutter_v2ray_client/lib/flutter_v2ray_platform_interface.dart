@@ -98,4 +98,22 @@ abstract class FlutterV2rayPlatform extends PlatformInterface {
       'getCoreVersion() has not been implemented.',
     );
   }
+
+  /// Retrieves V2Ray logs from the system logcat.
+  /// Returns a [Future] that completes with a [List] of log lines.
+  /// On non-Android platforms, returns an empty list.
+  Future<List<String>> getLogs() async {
+    throw UnimplementedError(
+      'getLogs() has not been implemented.',
+    );
+  }
+
+  /// Clears the V2Ray logs from the system logcat.
+  /// Returns a [Future] that completes with a [bool] indicating success.
+  /// On non-Android platforms, returns true.
+  Future<bool> clearLogs() async {
+    throw UnimplementedError(
+      'clearLogs() has not been implemented.',
+    );
+  }
 }

@@ -126,6 +126,28 @@ class V2ray {
     return FlutterV2rayPlatform.instance.getCoreVersion();
   }
 
+  /// Retrieves V2Ray logs from the system logcat.
+  /// Returns a [Future] that completes with a [List] of log lines.
+  /// On Android, this fetches logs filtered by V2Ray related tags.
+  /// On non-Android platforms, returns an empty list.
+  Future<List<String>> getLogs() async {
+    if (Platform.isAndroid) {
+      return FlutterV2rayPlatform.instance.getLogs();
+    }
+    return [];
+  }
+
+  /// Clears the V2Ray logs from the system logcat.
+  /// Returns a [Future] that completes with a [bool] indicating success.
+  /// On Android, this clears the logcat buffer.
+  /// On non-Android platforms, returns true.
+  Future<bool> clearLogs() async {
+    if (Platform.isAndroid) {
+      return FlutterV2rayPlatform.instance.clearLogs();
+    }
+    return true;
+  }
+
   /// Parses a V2Ray URL string and returns the corresponding V2RayURL object.
   /// [url] is the V2Ray share link (e.g., 'vmess://', 'vless://', etc.).
   /// Throws an [ArgumentError] if the URL scheme is invalid.

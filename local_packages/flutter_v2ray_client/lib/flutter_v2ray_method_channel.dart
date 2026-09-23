@@ -90,4 +90,27 @@ class MethodChannelFlutterV2ray extends FlutterV2rayPlatform {
   Future<String> getCoreVersion() async {
     return await methodChannel.invokeMethod('getCoreVersion');
   }
+
+  @override
+  Future<List<String>> getLogs() async {
+    try {
+      final result = await methodChannel.invokeMethod('getLogs');
+      if (result is List) {
+        return result.cast<String>();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<bool> clearLogs() async {
+    try {
+      final result = await methodChannel.invokeMethod('clearLogs');
+      return result == true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

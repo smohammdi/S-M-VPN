@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.VpnService;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,7 +19,9 @@ import androidx.core.app.ActivityCompat;
 import dev.amirzr.flutter_v2ray_client.v2ray.V2rayController;
 import dev.amirzr.flutter_v2ray_client.v2ray.V2rayReceiver;
 import dev.amirzr.flutter_v2ray_client.v2ray.utils.AppConfigs;
+import dev.amirzr.flutter_v2ray_client.v2ray.utils.LogcatManager;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,9 +39,8 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
 
     private static final int REQUEST_CODE_VPN_PERMISSION = 24;
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
-    private final ExecutorService executor = Executors.newFixedThreadPool(
-            Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors()))
-    );
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
     private MethodChannel vpnControlMethod;
     private EventChannel vpnStatusEvent;
     private EventChannel.EventSink vpnStatusSink;
@@ -64,15 +66,21 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                 if (v2rayBroadCastReceiver == null) {
                     v2rayBroadCastReceiver = new V2rayReceiver();
                 }
-                IntentFilter filter = new IntentFilter("V2RAY_CONNECTION_INFO");
+                // Use package-specific intent filter to isolate broadcasts per app
+                String packageName = appContext.getPackageName();
+                IntentFilter filter = new IntentFilter(packageName + ".V2RAY_CONNECTION_INFO");
 
                 // Use application context if activity is null (background service scenario)
                 Context contextToUse = activity != null ? activity : appContext;
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    contextToUse.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_EXPORTED);
-                } else {
-                    contextToUse.registerReceiver(v2rayBroadCastReceiver, filter);
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        contextToUse.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                    } else {
+                        contextToUse.registerReceiver(v2rayBroadCastReceiver, filter);
+                    }
+                } catch (Exception e) {
+                    Log.e("FlutterV2rayPlugin", "Failed to register broadcast receiver", e);
                 }
             }
 
@@ -100,6 +108,8 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     AppConfigs.NOTIFICATION_DISCONNECT_BUTTON_NAME = call.argument("notificationDisconnectButtonName");
                     if (Boolean.TRUE.equals(call.argument("proxy_only"))) {
                         V2rayController.changeConnectionMode(AppConfigs.V2RAY_CONNECTION_MODES.PROXY_ONLY);
+                    } else {
+                        V2rayController.changeConnectionMode(AppConfigs.V2RAY_CONNECTION_MODES.VPN_TUN);
                     }
                     V2rayController.StartV2ray(binding.getApplicationContext(), call.argument("remark"),
                             call.argument("config"), call.argument("blocked_apps"), call.argument("bypass_subnets"));
@@ -131,8 +141,9 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                 case "getConnectedServerDelay":
                     executor.submit(() -> {
                         try {
-                            String url = call.argument("url");
-                            result.success(V2rayController.getConnectedV2rayServerDelayDirect(url));
+                            AppConfigs.DELAY_URL = call.argument("url");
+                            result.success(
+                                    V2rayController.getConnectedV2rayServerDelay(binding.getApplicationContext()));
                         } catch (Exception e) {
                             result.success(-1);
                         }
@@ -144,6 +155,13 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                 case "requestPermission":
                     if (activity == null) {
                         result.error("NO_ACTIVITY", "Activity is not available for permission request", null);
+                        return;
+                    }
+
+                    // Prevent concurrent permission requests which can lead to a null pendingResult when the
+                    // activity result returns after a lifecycle change or a second request
+                    if (pendingResult != null) {
+                        result.error("ALREADY_ACTIVE", "A permission request is already running", null);
                         return;
                     }
 
@@ -162,6 +180,29 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                     } else {
                         result.success(true);
                     }
+                    break;
+                case "getLogs":
+                    executor.submit(() -> {
+                        try {
+                            String packageName = binding.getApplicationContext().getPackageName();
+                            List<String> logs = LogcatManager.getInstance().getLogs(packageName);
+                            result.success(logs);
+                        } catch (Exception e) {
+                            Log.e("FlutterV2rayPlugin", "Failed to get logs", e);
+                            result.error("LOG_ERROR", "Failed to retrieve logs: " + e.getMessage(), null);
+                        }
+                    });
+                    break;
+                case "clearLogs":
+                    executor.submit(() -> {
+                        try {
+                            boolean success = LogcatManager.getInstance().clearLogs();
+                            result.success(success);
+                        } catch (Exception e) {
+                            Log.e("FlutterV2rayPlugin", "Failed to clear logs", e);
+                            result.error("LOG_ERROR", "Failed to clear logs: " + e.getMessage(), null);
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -195,11 +236,17 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
             if (v2rayBroadCastReceiver == null) {
                 v2rayBroadCastReceiver = new V2rayReceiver();
             }
-            IntentFilter filter = new IntentFilter("V2RAY_CONNECTION_INFO");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                activity.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_EXPORTED);
-            } else {
-                activity.registerReceiver(v2rayBroadCastReceiver, filter);
+            // Use package-specific intent filter to isolate broadcasts per app
+            String packageName = appContext.getPackageName();
+            IntentFilter filter = new IntentFilter(packageName + ".V2RAY_CONNECTION_INFO");
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    activity.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    activity.registerReceiver(v2rayBroadCastReceiver, filter);
+                }
+            } catch (Exception e) {
+                Log.e("FlutterV2rayPlugin", "Failed to register broadcast receiver in onAttachedToActivity", e);
             }
         }
     }
@@ -220,30 +267,45 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
             if (v2rayBroadCastReceiver == null) {
                 v2rayBroadCastReceiver = new V2rayReceiver();
             }
-            IntentFilter filter = new IntentFilter("V2RAY_CONNECTION_INFO");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                activity.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_EXPORTED);
-            } else {
-                activity.registerReceiver(v2rayBroadCastReceiver, filter);
+            // Use package-specific intent filter to isolate broadcasts per app
+            String packageName = appContext.getPackageName();
+            IntentFilter filter = new IntentFilter(packageName + ".V2RAY_CONNECTION_INFO");
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    activity.registerReceiver(v2rayBroadCastReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    activity.registerReceiver(v2rayBroadCastReceiver, filter);
+                }
+            } catch (Exception e) {
+                Log.e("FlutterV2rayPlugin", "Failed to register broadcast receiver in onReattachedToActivityForConfigChanges", e);
             }
         }
     }
 
     @Override
     public void onDetachedFromActivity() {
-        // No additional cleanup required
+        // Clear activity and fail any pending permission result to avoid NPEs
+        activity = null;
+        if (pendingResult != null) {
+            pendingResult.error("ACTIVITY_DETACHED", "Activity detached before receiving VPN permission result", null);
+            pendingResult = null;
+        }
     }
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE_VPN_PERMISSION) {
-            if (resultCode == Activity.RESULT_OK) {
-                pendingResult.success(true);
-            } else {
-                pendingResult.success(false);
-            }
-            pendingResult = null;
+        if (requestCode != REQUEST_CODE_VPN_PERMISSION) {
+            return false; // Not handled by this plugin
         }
+
+        MethodChannel.Result result = pendingResult;
+        pendingResult = null;
+
+        if (result == null) {
+            return false; // Nothing to report (possibly after lifecycle change)
+        }
+
+        result.success(resultCode == Activity.RESULT_OK);
         return true;
     }
 }
